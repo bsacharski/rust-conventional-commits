@@ -1,5 +1,4 @@
 use std::env;
-use std::env::Args;
 use std::fs::File;
 use std::io::Write;
 
@@ -9,7 +8,7 @@ Our binary will receive three arguments: path to the file with initial commit me
 the type of the commit and commit SHA-1.
 */
 fn main() -> () {
-    let args: PrepareMessageArgs = get_args();
+    let args: PrepareMessageArgs = process_args(env::args().collect());
 
     if !can_use_template(&args) {
         return;
@@ -44,21 +43,21 @@ fn can_use_template(args: &PrepareMessageArgs) -> bool {
     return false;
 }
 
-fn get_args() -> PrepareMessageArgs {
-    process_args(env::args())
-}
-
-fn process_args(mut args: Args) -> PrepareMessageArgs {
-    args.next(); // skip binary file name
-
-    if args.len() == 0 {
+fn process_args(mut args: Vec<String>) -> PrepareMessageArgs {
+    if args.len() < 2 {
         panic!("Missing prepare-commit-msg arguments");
     }
 
     return PrepareMessageArgs {
-        filename: args.next().unwrap(),
-        commit_type: args.next(),
-        id: args.next(),
+        filename: String::from(args.get(1).unwrap()),
+        commit_type: match args.get(2) {
+            Some(commit_type) => Some(String::from(commit_type)),
+            None => None,
+        },
+        id: match args.get(3) {
+            Some(id) => Some(String::from(id)),
+            None => None,
+        },
     };
 }
 
@@ -68,4 +67,54 @@ const fn get_template() -> &'static str {
 # [optional body]
 
 # [optional footer(s)]"#;
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{process_args, PrepareMessageArgs};
+
+    #[test]
+    fn should_process_args_with_only_path_to_commit_file() {
+        // given
+        let args = vec![String::from("DontCare"), String::from(".git/some/file")];
+
+        // when
+        let actual = process_args(args);
+
+        // then
+        let expected: PrepareMessageArgs = PrepareMessageArgs {
+            filename: String::from(".git/some/file"),
+            commit_type: None,
+            id: None,
+        };
+
+        assert_eq!(expected.filename, actual.filename);
+        assert_eq!(expected.commit_type, actual.commit_type);
+        assert_eq!(expected.id, actual.id);
+    }
+
+    #[test]
+    fn should_process_complete_set_of_hook_args() {
+        // given
+        let args = vec![
+            String::from("DontCare"),
+            String::from(".git/some/file"),
+            String::from("merge"),
+            String::from("head"),
+        ];
+
+        // when
+        let actual = process_args(args);
+
+        // then
+        let expected: PrepareMessageArgs = PrepareMessageArgs {
+            filename: String::from(".git/some/file"),
+            commit_type: Some(String::from("merge")),
+            id: Some(String::from("head")),
+        };
+
+        assert_eq!(expected.filename, actual.filename);
+        assert_eq!(expected.commit_type, actual.commit_type);
+        assert_eq!(expected.id, actual.id);
+    }
 }
