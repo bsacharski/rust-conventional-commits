@@ -17,7 +17,7 @@ pub mod prepare_msg {
         return false;
     }
 
-    pub fn process_args(mut args: Vec<String>) -> PrepareMessageArgs {
+    pub fn process_args(args: Vec<String>) -> PrepareMessageArgs {
         if args.len() < 2 {
             panic!("Missing prepare-commit-msg arguments");
         }
