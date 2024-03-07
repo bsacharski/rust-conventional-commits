@@ -40,6 +40,24 @@ pub mod prepare_msg {
 
 # [optional body]
 
-# [optional footer(s)]"#;
+# [optional footer(s)]
+
+# type can be one of:
+#   - fix (correlates with PATCH in semver)
+#   - feat (cerrlates with MINOR in semver)
+#   - build
+#   - chore
+#   - ci
+#   - docs
+#   - style
+#   - refactor
+#   - perf
+#   - test
+#     and many, many others
+#
+# Note: if you add ! after type/scope, or write BREAKING CHANGE
+# in the footer, then it is represents a commit that introduces
+# some kind of breaking API change (correlates with MAJOR in the
+# semver). "#;
     }
 }
