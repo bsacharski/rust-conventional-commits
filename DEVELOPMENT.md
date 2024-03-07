@@ -11,8 +11,8 @@ No need to waste resources of another platform on something that I can easily ru
 ### Pre-commit flow
 
 ```shell
-cargo fmt --check
-# TODO add command for running unit tests
+cargo fmt --check # or run cargo fmt
+cargo test
 # TODO add command to validate commit subject message against conventional commit spec
 ```
 
