@@ -79,3 +79,20 @@ pub mod commit_msg {
         };
     }
 }
+
+pub mod core {
+    pub struct ConventionalCommit {
+        pub commit_type: CommitType,
+        pub scopes: Option<Vec<String>>,
+        pub description: String,
+        pub body: Option<String>,
+        pub footer: Option<Vec<String>>,
+        pub is_breaking_change: bool,
+    }
+
+    pub enum CommitType {
+        Fix,
+        Feat,
+        Custom(String),
+    }
+}
