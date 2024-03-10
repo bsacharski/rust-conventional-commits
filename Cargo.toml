@@ -17,3 +17,6 @@ name = "commit-lint"
 path = "src/commit-lint.rs"
 
 [dependencies]
+regex = "1.10.3"
+lazy_static = "1.4.0"
+log = "0.4.21"

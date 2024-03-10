@@ -1,5 +1,11 @@
 # Development
 
+## Setting up dev env.
+
+```shell
+cargo vendor
+```
+
 ## Before you commit
 
 The section below will be removed at some point.
