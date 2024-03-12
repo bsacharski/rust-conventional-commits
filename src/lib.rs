@@ -114,6 +114,22 @@ pub mod core {
         pub is_breaking_change: bool,
     }
 
+    struct Header {
+        commit_type: CommitType,
+        scopes: Option<Vec<String>>,
+        description: String,
+        has_breaking_change_marker: bool,
+    }
+
+    struct Footer {
+        elements: Vec<FooterElement>,
+        has_breaking_change_marker: bool,
+    }
+
+    struct FooterElement {
+        content: String,
+    }
+
     #[derive(Debug, PartialEq)]
     pub enum CommitType {
         Fix,
