@@ -182,6 +182,66 @@ pub mod core {
     fn parse_scopes(scopes: &str) -> Vec<String> {
         scopes.split(",").map(|s| String::from(s)).collect()
     }
+
+    enum ParserState {
+        Init,
+        Header,
+        Body,
+        Footer,
+    }
+
+    struct Parser {
+        state: ParserState,
+        header: Option<Header>,
+    }
+
+    impl Parser {
+        pub fn new() -> Self {
+            Self {
+                state: ParserState::Init,
+                header: None,
+            }
+        }
+
+        pub fn process_line(mut self, line: &str) -> () {
+            match self.state {
+                ParserState::Init => {
+                    let header = Self::parse_header(line).unwrap();
+                    self.state = ParserState::Header;
+                    self.header = Some(header);
+                }
+                _ => {
+                    panic!("Not implemented yet!");
+                }
+            }
+        }
+
+        fn parse_header(line: &str) -> Result<Header, ParseError> {
+            if !super::core::SUBJECT_REGEX.is_match(line) {
+                return Err(ParseError {
+                    header: String::from(line),
+                    reason: String::from("Commit header has invalid format"),
+                });
+            }
+
+            let captures = super::core::SUBJECT_REGEX.captures(line).unwrap();
+            let commit_type = captures.name("type").unwrap().as_str();
+            let scopes = captures.name("scope");
+            let description = captures.name("description").unwrap().as_str();
+            let has_breaking_change_marker = captures.name("breaking").is_some();
+
+            return Ok(Header {
+                commit_type: parse_commit_type(commit_type),
+                description: String::from(description),
+                scopes: if scopes.is_some() {
+                    Some(parse_scopes(scopes.unwrap().as_str()))
+                } else {
+                    None
+                },
+                has_breaking_change_marker,
+            });
+        }
+    }
 }
 
 #[cfg(test)]
