@@ -139,14 +139,14 @@ pub mod core {
 
     #[derive(Debug)]
     pub struct ParseError {
-        pub header: String,
+        pub line: String,
         pub reason: String,
     }
     pub fn parse(commit_message: &str) -> Result<ConventionalCommit, ParseError> {
         // TODO we should split the commit_message using newlines
         if !super::core::SUBJECT_REGEX.is_match(commit_message) {
             return Err(ParseError {
-                header: String::from(commit_message),
+                line: String::from(commit_message),
                 reason: String::from("Commit header has invalid format"),
             });
         }
@@ -203,10 +203,10 @@ pub mod core {
             }
         }
 
-        pub fn process_line(mut self, line: &str) -> () {
+        pub fn process_line(mut self, line: &str, next_line: Option<&str>) -> () {
             match self.state {
                 ParserState::Init => {
-                    let header = Self::parse_header(line).unwrap();
+                    let header = Self::parse_header(line, next_line).unwrap();
                     self.state = ParserState::Header;
                     self.header = Some(header);
                 }
@@ -216,11 +216,18 @@ pub mod core {
             }
         }
 
-        fn parse_header(line: &str) -> Result<Header, ParseError> {
+        fn parse_header(line: &str, next_line: Option<&str>) -> Result<Header, ParseError> {
             if !super::core::SUBJECT_REGEX.is_match(line) {
                 return Err(ParseError {
-                    header: String::from(line),
+                    line: String::from(line),
                     reason: String::from("Commit header has invalid format"),
+                });
+            }
+
+            if next_line.is_some_and(|l| !l.is_empty()) {
+                return Err(ParseError {
+                    line: String::from(next_line.unwrap()),
+                    reason: String::from("Line that follows header should be empty"),
                 });
             }
 
