@@ -114,11 +114,20 @@ pub mod core {
         pub is_breaking_change: bool,
     }
 
+    struct Commit {
+        header: Header,
+        body: Body,
+    }
+
     struct Header {
         commit_type: CommitType,
         scopes: Option<Vec<String>>,
         description: String,
         has_breaking_change_marker: bool,
+    }
+
+    struct Body {
+        lines: Option<Vec<String>>,
     }
 
     struct Footer {
@@ -181,6 +190,60 @@ pub mod core {
 
     fn parse_scopes(scopes: &str) -> Vec<String> {
         scopes.split(",").map(|s| String::from(s)).collect()
+    }
+
+    pub struct CommitMessage {
+        pub paragraphs: Vec<Paragraph>,
+    }
+
+    impl CommitMessage {
+        pub fn from(file_content: &str) -> Self {
+            let mut paragraphs: Vec<Paragraph> = vec![];
+
+            let mut current_paragraph: Paragraph = Paragraph::new();
+            for line in file_content.lines() {
+                let trimmed_line = line.trim();
+                if trimmed_line.len() > 0 {
+                    current_paragraph
+                        .add_line(trimmed_line)
+                        .expect("Failed to add line to paragraph")
+                } else {
+                    if current_paragraph.len() > 0 {
+                        paragraphs.push(current_paragraph);
+                    }
+                    current_paragraph = Paragraph::new()
+                }
+            }
+
+            if current_paragraph.len() > 0 {
+                paragraphs.push(current_paragraph);
+            }
+
+            return CommitMessage { paragraphs };
+        }
+    }
+
+    pub struct Paragraph {
+        pub lines: Vec<String>,
+    }
+
+    impl Paragraph {
+        pub fn new() -> Self {
+            Self { lines: vec![] }
+        }
+
+        pub fn add_line(&mut self, line: &str) -> Result<(), ()> {
+            if line.len() == 0 {
+                return Err(());
+            }
+
+            self.lines.push(String::from(line));
+            return Ok(());
+        }
+
+        pub fn len(&self) -> usize {
+            self.lines.len()
+        }
     }
 
     enum ParserState {
@@ -253,7 +316,7 @@ pub mod core {
 
 #[cfg(test)]
 mod tests {
-    use crate::core::{parse, CommitType, ConventionalCommit};
+    use crate::core::{parse, CommitMessage, CommitType, ConventionalCommit};
 
     #[test]
     fn should_parse_commit_subject_line_with_feat_type_and_foo_scope() {
@@ -370,5 +433,44 @@ mod tests {
 
         // then
         assert!(result.is_err(), "An Error should have been returned");
+    }
+
+    #[test]
+    fn should_create_commit_message_with_separate_three_paragraphs() {
+        // given
+        let input_string = r"first line of 1st paragraph
+
+first line of 2nd paragraph
+second line of 2nd paragraph
+
+first line of 3rd paragraph
+
+
+first line of 4th paragraph
+        ";
+
+        // when
+        let commit_message = CommitMessage::from(input_string);
+
+        // then
+        assert_eq!(
+            commit_message.paragraphs[0].lines,
+            vec![String::from("first line of 1st paragraph")]
+        );
+        assert_eq!(
+            commit_message.paragraphs[1].lines,
+            vec![
+                String::from("first line of 2nd paragraph"),
+                String::from("second line of 2nd paragraph")
+            ]
+        );
+        assert_eq!(
+            commit_message.paragraphs[2].lines,
+            vec![String::from("first line of 3rd paragraph")]
+        );
+        assert_eq!(
+            commit_message.paragraphs[3].lines,
+            vec![String::from("first line of 4th paragraph")]
+        );
     }
 }
