@@ -20,4 +20,5 @@ Cargo.lock
 
 # Custom ones
 .idea
+*.iml
 vendor/
