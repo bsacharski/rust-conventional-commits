@@ -102,6 +102,14 @@ pub mod core {
         .ignore_whitespace(true)
         .build()
         .unwrap();
+        static ref FOOTER_REGEX: Regex = RegexBuilder::new(
+            r"
+            ^(?:(?<breaking>BREAKING-CHANGE?)|\w+(?:-\w+)+?): .+$
+            "
+        )
+        .ignore_whitespace(true)
+        .build()
+        .unwrap();
     }
 
     #[derive(Debug, PartialEq)]
@@ -109,14 +117,32 @@ pub mod core {
         pub commit_type: CommitType,
         pub scopes: Option<Vec<String>>,
         pub description: String,
-        pub body: Option<String>,
-        pub footer: Option<Vec<String>>,
+        pub body: Option<Body>,
+        pub footer: Option<Footer>,
         pub is_breaking_change: bool,
     }
 
-    struct Commit {
-        header: Header,
-        body: Body,
+    impl ConventionalCommit {
+        pub fn from(message: &CommitMessage) -> Result<Self, ParseError> {
+            let Some(first_paragraph) = message.get_paragraph(0) else {
+                return Err(ParseError {
+                    line: String::from(""),
+                    reason: String::from("Commit message has to have at least one line"),
+                });
+            };
+
+            let header_result = parse_header(first_paragraph);
+            if header_result.is_err() {
+                return Err(header_result.err().unwrap());
+            }
+
+            let header = header_result.unwrap();
+
+            return Err(ParseError {
+                line: String::from("Not implemented yet"),
+                reason: String::from("NOT IMPLEMENTED YET"),
+            });
+        }
     }
 
     struct Header {
@@ -126,17 +152,40 @@ pub mod core {
         has_breaking_change_marker: bool,
     }
 
+    #[derive(Debug, PartialEq)]
     struct Body {
-        lines: Option<Vec<String>>,
+        paragraphs: Vec<Paragraph>,
     }
 
+    #[derive(Debug, PartialEq)]
     struct Footer {
         elements: Vec<FooterElement>,
         has_breaking_change_marker: bool,
     }
 
+    #[derive(Debug, PartialEq)]
     struct FooterElement {
         content: String,
+        has_breaking_change: bool,
+    }
+
+    impl FooterElement {
+        pub fn from(line: &String) -> Result<Self, ParseError> {
+            let captures = super::core::SUBJECT_REGEX.captures(line);
+            if captures.is_none() {
+                return Err(ParseError {
+                    line: String::from(line),
+                    reason: String::from("Line does not match git trailer format"),
+                });
+            }
+
+            let has_breaking_change_marker = captures.unwrap().name("breaking").is_some();
+
+            return Ok(Self {
+                content: String::from(line),
+                has_breaking_change: has_breaking_change_marker,
+            });
+        }
     }
 
     #[derive(Debug, PartialEq)]
@@ -221,8 +270,17 @@ pub mod core {
 
             return CommitMessage { paragraphs };
         }
+
+        pub fn get_paragraph(self: &Self, num: usize) -> Option<&Paragraph> {
+            if let ref paragraph = self.paragraphs[num] {
+                Some(paragraph)
+            } else {
+                None
+            }
+        }
     }
 
+    #[derive(Debug, PartialEq)]
     pub struct Paragraph {
         pub lines: Vec<String>,
     }
@@ -244,73 +302,58 @@ pub mod core {
         pub fn len(&self) -> usize {
             self.lines.len()
         }
-    }
 
-    enum ParserState {
-        Init,
-        Header,
-        Body,
-        Footer,
-    }
-
-    struct Parser {
-        state: ParserState,
-        header: Option<Header>,
-    }
-
-    impl Parser {
-        pub fn new() -> Self {
-            Self {
-                state: ParserState::Init,
-                header: None,
-            }
+        pub fn get_line(&self, num: usize) -> Option<&String> {
+            self.lines.get(num)
         }
 
-        pub fn process_line(mut self, line: &str, next_line: Option<&str>) -> () {
-            match self.state {
-                ParserState::Init => {
-                    let header = Self::parse_header(line, next_line).unwrap();
-                    self.state = ParserState::Header;
-                    self.header = Some(header);
-                }
-                _ => {
-                    panic!("Not implemented yet!");
-                }
-            }
+        pub fn get_lines(&self) -> &Vec<String> {
+            &self.lines
         }
+    }
 
-        fn parse_header(line: &str, next_line: Option<&str>) -> Result<Header, ParseError> {
-            if !super::core::SUBJECT_REGEX.is_match(line) {
-                return Err(ParseError {
-                    line: String::from(line),
-                    reason: String::from("Commit header has invalid format"),
-                });
-            }
-
-            if next_line.is_some_and(|l| !l.is_empty()) {
-                return Err(ParseError {
-                    line: String::from(next_line.unwrap()),
-                    reason: String::from("Line that follows header should be empty"),
-                });
-            }
-
-            let captures = super::core::SUBJECT_REGEX.captures(line).unwrap();
-            let commit_type = captures.name("type").unwrap().as_str();
-            let scopes = captures.name("scope");
-            let description = captures.name("description").unwrap().as_str();
-            let has_breaking_change_marker = captures.name("breaking").is_some();
-
-            return Ok(Header {
-                commit_type: parse_commit_type(commit_type),
-                description: String::from(description),
-                scopes: if scopes.is_some() {
-                    Some(parse_scopes(scopes.unwrap().as_str()))
-                } else {
-                    None
-                },
-                has_breaking_change_marker,
+    fn parse_header(paragraph: &Paragraph) -> Result<Header, ParseError> {
+        if paragraph.len() != 1 {
+            return Err(ParseError {
+                line: String::from(""),
+                reason: String::from("Commit header should have exactly one line"),
             });
         }
+
+        let line = paragraph.get_line(0).unwrap();
+
+        if !super::core::SUBJECT_REGEX.is_match(line) {
+            return Err(ParseError {
+                line: String::from(line),
+                reason: String::from("Commit header has invalid format"),
+            });
+        }
+
+        let captures = super::core::SUBJECT_REGEX.captures(line).unwrap();
+        let commit_type = captures.name("type").unwrap().as_str();
+        let scopes = captures.name("scope");
+        let description = captures.name("description").unwrap().as_str();
+        let has_breaking_change_marker = captures.name("breaking").is_some();
+
+        return Ok(Header {
+            commit_type: parse_commit_type(commit_type),
+            description: String::from(description),
+            scopes: if scopes.is_some() {
+                Some(parse_scopes(scopes.unwrap().as_str()))
+            } else {
+                None
+            },
+            has_breaking_change_marker,
+        });
+    }
+
+    fn parse_footer(paragraph: &Paragraph) -> Result<Footer, ParseError> {
+        for line in paragraph.get_lines() {}
+
+        Err(ParseError {
+            line: String::from(""),
+            reason: String::from("This paragraph doesn't match footer format"),
+        })
     }
 }
 
