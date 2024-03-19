@@ -82,8 +82,11 @@ pub mod commit_msg {
 
 pub mod core {
     extern crate lazy_static;
+
     use lazy_static::lazy_static;
     use regex::{Regex, RegexBuilder};
+    use std::collections::VecDeque;
+    use std::ops::Deref;
 
     lazy_static! {
         static ref SUBJECT_REGEX: Regex = RegexBuilder::new(
@@ -123,24 +126,50 @@ pub mod core {
     }
 
     impl ConventionalCommit {
-        pub fn from(message: &CommitMessage) -> Result<Self, ParseError> {
-            let Some(first_paragraph) = message.get_paragraph(0) else {
+        pub fn from(message: CommitMessage) -> Result<Self, ParseError> {
+            let mut paragraphs = message.get_paragraphs();
+            if paragraphs.len() == 0 {
                 return Err(ParseError {
                     line: String::from(""),
                     reason: String::from("Commit message has to have at least one line"),
                 });
-            };
-
-            let header_result = parse_header(first_paragraph);
-            if header_result.is_err() {
-                return Err(header_result.err().unwrap());
             }
 
-            let header = header_result.unwrap();
+            let first_paragraph = paragraphs.pop_front().unwrap();
+            let potential_header = parse_header(&first_paragraph);
+            if potential_header.is_err() {
+                return Err(potential_header.err().unwrap());
+            }
 
-            return Err(ParseError {
-                line: String::from("Not implemented yet"),
-                reason: String::from("NOT IMPLEMENTED YET"),
+            let header = potential_header.unwrap();
+            let mut body: Option<Body> = None;
+            let mut footer: Option<Footer> = None;
+
+            if paragraphs.len() > 0 {
+                let last_paragraph = paragraphs.pop_back().unwrap();
+                let potential_footer = Footer::from(&last_paragraph);
+                if potential_footer.is_ok() {
+                    footer = Some(potential_footer.unwrap())
+                } else {
+                    paragraphs.push_back(last_paragraph)
+                }
+            }
+
+            if paragraphs.len() > 0 {
+                body = Some(Body::from(Vec::from(paragraphs))); // he he, Smash Mouth joke
+            }
+
+            return Ok(ConventionalCommit {
+                commit_type: header.commit_type,
+                scopes: header.scopes,
+                description: header.description,
+                is_breaking_change: header.has_breaking_change_marker
+                    || match &footer {
+                        Some(footer) => footer.has_breaking_change_marker,
+                        None => false,
+                    },
+                body,
+                footer,
             });
         }
     }
@@ -157,10 +186,45 @@ pub mod core {
         paragraphs: Vec<Paragraph>,
     }
 
+    impl Body {
+        pub fn from(paragraphs: Vec<Paragraph>) -> Self {
+            Self { paragraphs }
+        }
+    }
+
     #[derive(Debug, PartialEq)]
     struct Footer {
         elements: Vec<FooterElement>,
         has_breaking_change_marker: bool,
+    }
+
+    impl Footer {
+        pub fn from(paragraph: &Paragraph) -> Result<Self, ParseError> {
+            let mut footer_elements: Vec<FooterElement> = vec![];
+            let mut has_breaking_change = false;
+
+            for line in paragraph.get_lines() {
+                let potential_element = FooterElement::from(line);
+                if potential_element.is_err() {
+                    return Err(ParseError {
+                        line: String::from(line),
+                        reason: String::from("Line does not match git trailer format"),
+                    });
+                }
+
+                let element = potential_element.unwrap();
+                if element.has_breaking_change {
+                    has_breaking_change = true;
+                }
+
+                footer_elements.push(element);
+            }
+
+            return Ok(Self {
+                elements: footer_elements,
+                has_breaking_change_marker: has_breaking_change,
+            });
+        }
     }
 
     #[derive(Debug, PartialEq)]
@@ -271,6 +335,15 @@ pub mod core {
             return CommitMessage { paragraphs };
         }
 
+        pub fn get_paragraphs(&self) -> VecDeque<Paragraph> {
+            let mut deque: VecDeque<Paragraph> = VecDeque::with_capacity(self.paragraphs.len());
+            for par in self.paragraphs.iter() {
+                deque.push_back(Paragraph::from(par));
+            }
+
+            return deque;
+        }
+
         pub fn get_paragraph(self: &Self, num: usize) -> Option<&Paragraph> {
             if let ref paragraph = self.paragraphs[num] {
                 Some(paragraph)
@@ -288,6 +361,12 @@ pub mod core {
     impl Paragraph {
         pub fn new() -> Self {
             Self { lines: vec![] }
+        }
+
+        pub fn from(other: &Paragraph) -> Self {
+            return Self {
+                lines: other.lines.to_vec(),
+            };
         }
 
         pub fn add_line(&mut self, line: &str) -> Result<(), ()> {
@@ -345,15 +424,6 @@ pub mod core {
             },
             has_breaking_change_marker,
         });
-    }
-
-    fn parse_footer(paragraph: &Paragraph) -> Result<Footer, ParseError> {
-        for line in paragraph.get_lines() {}
-
-        Err(ParseError {
-            line: String::from(""),
-            reason: String::from("This paragraph doesn't match footer format"),
-        })
     }
 }
 
