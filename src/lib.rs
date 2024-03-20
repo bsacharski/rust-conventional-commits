@@ -182,8 +182,8 @@ pub mod core {
     }
 
     #[derive(Debug, PartialEq)]
-    struct Body {
-        paragraphs: Vec<Paragraph>,
+    pub struct Body {
+        pub paragraphs: Vec<Paragraph>,
     }
 
     impl Body {
@@ -193,9 +193,9 @@ pub mod core {
     }
 
     #[derive(Debug, PartialEq)]
-    struct Footer {
-        elements: Vec<FooterElement>,
-        has_breaking_change_marker: bool,
+    pub struct Footer {
+        pub elements: Vec<FooterElement>,
+        pub has_breaking_change_marker: bool,
     }
 
     impl Footer {
@@ -429,7 +429,8 @@ pub mod core {
 
 #[cfg(test)]
 mod tests {
-    use crate::core::{parse, CommitMessage, CommitType, ConventionalCommit};
+    use crate::core::CommitType::{Feat, Fix};
+    use crate::core::{parse, CommitMessage, CommitType, ConventionalCommit, Paragraph};
 
     #[test]
     fn should_parse_commit_subject_line_with_feat_type_and_foo_scope() {
@@ -585,5 +586,109 @@ first line of 4th paragraph
             commit_message.paragraphs[3].lines,
             vec![String::from("first line of 4th paragraph")]
         );
+    }
+
+    #[test]
+    fn should_create_conventional_commit_with_header_only_variant1() {
+        // given
+        let commit = CommitMessage {
+            paragraphs: vec![Paragraph {
+                lines: vec![String::from("feat(unit-test): add new unit tests")],
+            }],
+        };
+
+        // when
+        let convention_commit = ConventionalCommit::from(commit);
+
+        // then
+        assert_eq!(
+            convention_commit.unwrap(),
+            ConventionalCommit {
+                commit_type: Feat,
+                scopes: Some(vec![String::from("unit-test")]),
+                is_breaking_change: false,
+                description: String::from("add new unit tests"),
+                body: None,
+                footer: None,
+            }
+        )
+    }
+
+    #[test]
+    fn should_create_conventional_commit_with_header_only_variant2() {
+        // given
+        let commit = CommitMessage {
+            paragraphs: vec![Paragraph {
+                lines: vec![String::from("feat(unit-test)!: add new unit tests 2")],
+            }],
+        };
+
+        // when
+        let convention_commit = ConventionalCommit::from(commit);
+
+        // then
+        assert_eq!(
+            convention_commit.unwrap(),
+            ConventionalCommit {
+                commit_type: Feat,
+                scopes: Some(vec![String::from("unit-test")]),
+                is_breaking_change: true,
+                description: String::from("add new unit tests 2"),
+                body: None,
+                footer: None,
+            }
+        )
+    }
+
+    #[test]
+    fn should_create_conventional_commit_with_header_only_variant3() {
+        // given
+        let commit = CommitMessage {
+            paragraphs: vec![Paragraph {
+                lines: vec![String::from("fix(unit-test,foo): add new unit tests 3")],
+            }],
+        };
+
+        // when
+        let convention_commit = ConventionalCommit::from(commit);
+
+        // then
+        assert_eq!(
+            convention_commit.unwrap(),
+            ConventionalCommit {
+                commit_type: Fix,
+                scopes: Some(vec![String::from("unit-test"), String::from("foo")]),
+                is_breaking_change: false,
+                description: String::from("add new unit tests 3"),
+                body: None,
+                footer: None,
+            }
+        )
+    }
+
+    #[test]
+    fn should_create_conventional_commit_with_header_only_variant4() {
+        // given
+        let commit = CommitMessage {
+            paragraphs: vec![Paragraph {
+                lines: vec![String::from("fix!: add new unit tests 4")],
+            }],
+        };
+
+        // when
+        let convention_commit = ConventionalCommit::from(commit);
+
+        // then
+        assert_eq!(
+            convention_commit.unwrap(),
+            ConventionalCommit {
+                commit_type: Fix,
+                scopes: None,
+                is_breaking_change: true,
+                description: String::from("add new unit tests 4"),
+                body: None,
+                footer: None,
+            }
+        )
     }
 }
