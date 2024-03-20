@@ -105,14 +105,10 @@ pub mod core {
         .ignore_whitespace(true)
         .build()
         .unwrap();
-        static ref FOOTER_REGEX: Regex = RegexBuilder::new(
-            r"
-            ^(?:(?<breaking>BREAKING-CHANGE?)|\w+(?:-\w+)+?): .+$
-            "
-        )
-        .ignore_whitespace(true)
-        .build()
-        .unwrap();
+        static ref FOOTER_REGEX: Regex =
+            RegexBuilder::new(r"^(?:(?<breaking>BREAKING CHANGE?)|\w+(?:-\w+)+?): .+$")
+                .build()
+                .unwrap();
     }
 
     #[derive(Debug, PartialEq)]
@@ -228,9 +224,9 @@ pub mod core {
     }
 
     #[derive(Debug, PartialEq)]
-    struct FooterElement {
-        content: String,
-        has_breaking_change: bool,
+    pub struct FooterElement {
+        pub content: String,
+        pub has_breaking_change: bool,
     }
 
     impl FooterElement {
@@ -430,7 +426,10 @@ pub mod core {
 #[cfg(test)]
 mod tests {
     use crate::core::CommitType::{Feat, Fix};
-    use crate::core::{parse, CommitMessage, CommitType, ConventionalCommit, Paragraph};
+    use crate::core::{
+        parse, Body, CommitMessage, CommitType, ConventionalCommit, Footer, FooterElement,
+        Paragraph,
+    };
 
     #[test]
     fn should_parse_commit_subject_line_with_feat_type_and_foo_scope() {
@@ -688,6 +687,154 @@ first line of 4th paragraph
                 description: String::from("add new unit tests 4"),
                 body: None,
                 footer: None,
+            }
+        )
+    }
+
+    #[test]
+    fn should_create_conventional_commit_with_header_and_body_variant_1() {
+        // given
+        let commit = CommitMessage {
+            paragraphs: vec![
+                Paragraph {
+                    lines: vec![String::from("fix!: add new unit tests 5")],
+                },
+                Paragraph {
+                    lines: vec![
+                        String::from("Some very interesting line 1"),
+                        String::from("Some very interesting line 2"),
+                        String::from("Some very interesting line 3"),
+                    ],
+                },
+            ],
+        };
+
+        // when
+        let convention_commit = ConventionalCommit::from(commit);
+
+        // then
+        assert_eq!(
+            convention_commit.unwrap(),
+            ConventionalCommit {
+                commit_type: Fix,
+                scopes: None,
+                is_breaking_change: true,
+                description: String::from("add new unit tests 5"),
+                body: Some(Body {
+                    paragraphs: vec![Paragraph {
+                        lines: vec![
+                            String::from("Some very interesting line 1"),
+                            String::from("Some very interesting line 2"),
+                            String::from("Some very interesting line 3"),
+                        ]
+                    }]
+                }),
+                footer: None,
+            }
+        )
+    }
+
+    #[test]
+    fn should_create_conventional_commit_with_header_and_body_variant_2() {
+        // given
+        let commit = CommitMessage {
+            paragraphs: vec![
+                Paragraph {
+                    lines: vec![String::from("fix!: add new unit tests 5")],
+                },
+                Paragraph {
+                    lines: vec![
+                        String::from("Some very interesting line 1"),
+                        String::from("Some very interesting line 2"),
+                        String::from("Some very interesting line 3"),
+                    ],
+                },
+                Paragraph {
+                    lines: vec![
+                        String::from("Some even more interesting line 1"),
+                        String::from("Some even more interesting line 2"),
+                        String::from("Some even more interesting line 3"),
+                    ],
+                },
+            ],
+        };
+
+        // when
+        let convention_commit = ConventionalCommit::from(commit);
+
+        // then
+        assert_eq!(
+            convention_commit.unwrap(),
+            ConventionalCommit {
+                commit_type: Fix,
+                scopes: None,
+                is_breaking_change: true,
+                description: String::from("add new unit tests 5"),
+                body: Some(Body {
+                    paragraphs: vec![
+                        Paragraph {
+                            lines: vec![
+                                String::from("Some very interesting line 1"),
+                                String::from("Some very interesting line 2"),
+                                String::from("Some very interesting line 3"),
+                            ]
+                        },
+                        Paragraph {
+                            lines: vec![
+                                String::from("Some even more interesting line 1"),
+                                String::from("Some even more interesting line 2"),
+                                String::from("Some even more interesting line 3"),
+                            ]
+                        }
+                    ]
+                }),
+                footer: None,
+            }
+        )
+    }
+
+    #[test]
+    fn should_create_conventional_commit_with_header_and_footer_variant_1() {
+        // given
+        let commit = CommitMessage {
+            paragraphs: vec![
+                Paragraph {
+                    lines: vec![String::from("fix: add new unit tests 5")],
+                },
+                Paragraph {
+                    lines: vec![
+                        String::from("BREAKING CHANGE: foo1234"),
+                        String::from("Reviewed-by: Foo1234"),
+                    ],
+                },
+            ],
+        };
+
+        // when
+        let convention_commit = ConventionalCommit::from(commit);
+
+        // then
+        assert_eq!(
+            convention_commit.unwrap(),
+            ConventionalCommit {
+                commit_type: Fix,
+                scopes: None,
+                is_breaking_change: true,
+                description: String::from("add new unit tests 5"),
+                body: None,
+                footer: Some(Footer {
+                    has_breaking_change_marker: true,
+                    elements: vec![
+                        FooterElement {
+                            content: String::from("BREAKING CHANGE: foo1234"),
+                            has_breaking_change: true,
+                        },
+                        FooterElement {
+                            content: String::from("Reviewed-by: Foo1234"),
+                            has_breaking_change: false,
+                        }
+                    ]
+                }),
             }
         )
     }
