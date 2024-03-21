@@ -105,11 +105,10 @@ pub mod core {
         .ignore_whitespace(true)
         .build()
         .unwrap();
-        static ref FOOTER_REGEX: Regex = RegexBuilder::new(
-            r"^(?:(?<breaking>BREAKING CHANGE)|(?:[-A-z]+)+?)(?::\s)|(?:\s#).+$"
-        )
-        .build()
-        .unwrap();
+        static ref FOOTER_REGEX: Regex =
+            RegexBuilder::new(r"^(?:(?<breaking>BREAKING CHANGE)|(?:[-A-z]+)+?)(?::\s)|(?:\s#).+$")
+                .build()
+                .unwrap();
     }
 
     #[derive(Debug, PartialEq)]
