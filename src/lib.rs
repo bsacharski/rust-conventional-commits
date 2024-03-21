@@ -105,10 +105,11 @@ pub mod core {
         .ignore_whitespace(true)
         .build()
         .unwrap();
-        static ref FOOTER_REGEX: Regex =
-            RegexBuilder::new(r"^(?:(?<breaking>BREAKING CHANGE?)|\w+(?:-\w+)+?): .+$")
-                .build()
-                .unwrap();
+        static ref FOOTER_REGEX: Regex = RegexBuilder::new(
+            r"^(?:(?<breaking>BREAKING CHANGE?)|(?:[-A-z]+)+?)(?::\s)|(?:\s#).+$"
+        )
+        .build()
+        .unwrap();
     }
 
     #[derive(Debug, PartialEq)]
@@ -803,8 +804,8 @@ first line of 4th paragraph
                 },
                 Paragraph {
                     lines: vec![
-                        String::from("BREAKING CHANGE: foo1234"),
                         String::from("Reviewed-by: Foo1234"),
+                        String::from("Closes: #5678"),
                     ],
                 },
             ],
@@ -819,18 +820,18 @@ first line of 4th paragraph
             ConventionalCommit {
                 commit_type: Fix,
                 scopes: None,
-                is_breaking_change: true,
+                is_breaking_change: false,
                 description: String::from("add new unit tests 5"),
                 body: None,
                 footer: Some(Footer {
-                    has_breaking_change_marker: true,
+                    has_breaking_change_marker: false,
                     elements: vec![
                         FooterElement {
-                            content: String::from("BREAKING CHANGE: foo1234"),
-                            has_breaking_change: true,
+                            content: String::from("Reviewed-by: Foo1234"),
+                            has_breaking_change: false,
                         },
                         FooterElement {
-                            content: String::from("Reviewed-by: Foo1234"),
+                            content: String::from("Closes: #5678"),
                             has_breaking_change: false,
                         }
                     ]
