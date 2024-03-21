@@ -106,7 +106,7 @@ pub mod core {
         .build()
         .unwrap();
         static ref FOOTER_REGEX: Regex = RegexBuilder::new(
-            r"^(?:(?<breaking>BREAKING CHANGE?)|(?:[-A-z]+)+?)(?::\s)|(?:\s#).+$"
+            r"^(?:(?<breaking>BREAKING CHANGE)|(?:[-A-z]+)+?)(?::\s)|(?:\s#).+$"
         )
         .build()
         .unwrap();
@@ -232,7 +232,7 @@ pub mod core {
 
     impl FooterElement {
         pub fn from(line: &String) -> Result<Self, ParseError> {
-            let captures = super::core::SUBJECT_REGEX.captures(line);
+            let captures = super::core::FOOTER_REGEX.captures(line);
             if captures.is_none() {
                 return Err(ParseError {
                     line: String::from(line),
@@ -829,6 +829,52 @@ first line of 4th paragraph
                         FooterElement {
                             content: String::from("Reviewed-by: Foo1234"),
                             has_breaking_change: false,
+                        },
+                        FooterElement {
+                            content: String::from("Closes: #5678"),
+                            has_breaking_change: false,
+                        }
+                    ]
+                }),
+            }
+        )
+    }
+
+    #[test]
+    fn should_create_conventional_commit_with_header_and_footer_variant_2() {
+        // given
+        let commit = CommitMessage {
+            paragraphs: vec![
+                Paragraph {
+                    lines: vec![String::from("fix: add new unit tests 5")],
+                },
+                Paragraph {
+                    lines: vec![
+                        String::from("BREAKING CHANGE: Foo1234"),
+                        String::from("Closes: #5678"),
+                    ],
+                },
+            ],
+        };
+
+        // when
+        let convention_commit = ConventionalCommit::from(commit);
+
+        // then
+        assert_eq!(
+            convention_commit.unwrap(),
+            ConventionalCommit {
+                commit_type: Fix,
+                scopes: None,
+                is_breaking_change: true,
+                description: String::from("add new unit tests 5"),
+                body: None,
+                footer: Some(Footer {
+                    has_breaking_change_marker: true,
+                    elements: vec![
+                        FooterElement {
+                            content: String::from("BREAKING CHANGE: Foo1234"),
+                            has_breaking_change: true,
                         },
                         FooterElement {
                             content: String::from("Closes: #5678"),
