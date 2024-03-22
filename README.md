@@ -1,5 +1,7 @@
 # Rust Conventional Commits
 
+[![No Maintenance Intended](http://unmaintained.tech/badge.svg)](http://unmaintained.tech/)
+
 The aim of this project is:
 - to provide a set of tools related to [conventional commits][1] (version 1.0.0)
 - learn rust
