@@ -86,7 +86,6 @@ pub mod core {
     use lazy_static::lazy_static;
     use regex::{Regex, RegexBuilder};
     use std::collections::VecDeque;
-    use std::ops::Deref;
 
     lazy_static! {
         static ref SUBJECT_REGEX: Regex = RegexBuilder::new(
@@ -122,6 +121,11 @@ pub mod core {
     }
 
     impl ConventionalCommit {
+        pub fn from_str(message: &str) -> Result<Self, ParseError> {
+            let commit = CommitMessage::from(message);
+            return ConventionalCommit::from(commit);
+        }
+
         pub fn from(message: CommitMessage) -> Result<Self, ParseError> {
             let mut paragraphs = message.get_paragraphs();
             if paragraphs.len() == 0 {
@@ -259,34 +263,6 @@ pub mod core {
     pub struct ParseError {
         pub line: String,
         pub reason: String,
-    }
-    pub fn parse(commit_message: &str) -> Result<ConventionalCommit, ParseError> {
-        // TODO we should split the commit_message using newlines
-        if !super::core::SUBJECT_REGEX.is_match(commit_message) {
-            return Err(ParseError {
-                line: String::from(commit_message),
-                reason: String::from("Commit header has invalid format"),
-            });
-        }
-
-        let captures = super::core::SUBJECT_REGEX.captures(commit_message).unwrap();
-        let commit_type = captures.name("type").unwrap().as_str();
-        let scopes = captures.name("scope");
-        let description = captures.name("description").unwrap().as_str();
-        let has_breaking_change_marker = captures.name("breaking").is_some();
-
-        return Ok(ConventionalCommit {
-            commit_type: parse_commit_type(commit_type),
-            body: None,
-            description: String::from(description),
-            footer: None,
-            is_breaking_change: has_breaking_change_marker, // todo should look for BREAKING CHANGE footer
-            scopes: if scopes.is_some() {
-                Some(parse_scopes(scopes.unwrap().as_str()))
-            } else {
-                None
-            },
-        });
     }
 
     fn parse_commit_type(commit_type: &str) -> CommitType {
@@ -427,17 +403,16 @@ pub mod core {
 mod tests {
     use crate::core::CommitType::{Feat, Fix};
     use crate::core::{
-        parse, Body, CommitMessage, CommitType, ConventionalCommit, Footer, FooterElement,
-        Paragraph,
+        Body, CommitMessage, CommitType, ConventionalCommit, Footer, FooterElement, Paragraph,
     };
 
     #[test]
     fn should_parse_commit_subject_line_with_feat_type_and_foo_scope() {
         // given
-        let subject = String::from("feat(foo): bar baz");
+        let subject = "feat(foo): bar baz";
 
         // when
-        let result = parse(&subject);
+        let result = ConventionalCommit::from_str(&subject);
 
         // then
         let expected: ConventionalCommit = ConventionalCommit {
@@ -455,10 +430,10 @@ mod tests {
     #[test]
     fn should_parse_commit_subject_line_with_fix_type_and_foo_scope() {
         // given
-        let subject = String::from("fix(foo): bar baz");
+        let subject = "fix(foo): bar baz";
 
         // when
-        let result = parse(&subject);
+        let result = ConventionalCommit::from_str(&subject);
 
         // then
         let expected: ConventionalCommit = ConventionalCommit {
@@ -476,10 +451,10 @@ mod tests {
     #[test]
     fn should_parse_commit_subject_line_with_docs_type_and_foo_scope() {
         // given
-        let subject = String::from("docs(foo): bar baz");
+        let subject = "docs(foo): bar baz";
 
         // when
-        let result = parse(&subject);
+        let result = ConventionalCommit::from_str(&subject);
 
         // then
         let expected: ConventionalCommit = ConventionalCommit {
@@ -497,10 +472,10 @@ mod tests {
     #[test]
     fn should_parse_commit_subject_line_with_feat_type_foo_scope_and_breaking_change_marker() {
         // given
-        let subject = String::from("feat(foo)!: bar baz");
+        let subject = "feat(foo)!: bar baz";
 
         // when
-        let result = parse(&subject);
+        let result = ConventionalCommit::from_str(&subject);
 
         // then
         let expected: ConventionalCommit = ConventionalCommit {
@@ -518,10 +493,10 @@ mod tests {
     #[test]
     fn should_parse_commit_subject_line_with_fix_type_and_foo_and_bax_scopes() {
         // given
-        let subject = String::from("feat(foo,bax): bar baz");
+        let subject = "feat(foo,bax): bar baz";
 
         // when
-        let result = parse(&subject);
+        let result = ConventionalCommit::from_str(&subject);
 
         // then
         let expected: ConventionalCommit = ConventionalCommit {
@@ -539,10 +514,10 @@ mod tests {
     #[test]
     fn should_return_parse_error_when_subject_line_has_incorrect_syntax() {
         // given
-        let subject = String::from("Implemented something");
+        let subject = "Implemented something";
 
         // when
-        let result = parse(&subject);
+        let result = ConventionalCommit::from_str(&subject);
 
         // then
         assert!(result.is_err(), "An Error should have been returned");
