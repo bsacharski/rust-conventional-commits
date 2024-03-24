@@ -86,6 +86,8 @@ pub mod core {
     use lazy_static::lazy_static;
     use regex::{Regex, RegexBuilder};
     use std::collections::VecDeque;
+    use std::fmt;
+    use std::fmt::Formatter;
 
     lazy_static! {
         static ref SUBJECT_REGEX: Regex = RegexBuilder::new(
@@ -265,6 +267,12 @@ pub mod core {
         pub reason: String,
     }
 
+    impl fmt::Display for ParseError {
+        fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+            write!(f, "{}", self.reason)
+        }
+    }
+
     fn parse_commit_type(commit_type: &str) -> CommitType {
         return match commit_type.to_lowercase().as_str() {
             "feat" => CommitType::Feat,
@@ -317,11 +325,12 @@ pub mod core {
         }
 
         pub fn get_paragraph(self: &Self, num: usize) -> Option<&Paragraph> {
-            if let ref paragraph = self.paragraphs[num] {
-                Some(paragraph)
-            } else {
-                None
+            if num >= self.paragraphs.len() {
+                return None;
             }
+
+            let ref paragraph = self.paragraphs[num];
+            return Some(paragraph);
         }
     }
 
