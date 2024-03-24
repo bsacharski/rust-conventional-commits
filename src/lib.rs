@@ -296,7 +296,7 @@ pub mod core {
             let mut current_paragraph: Paragraph = Paragraph::new();
             for line in file_content.lines() {
                 let trimmed_line = line.trim();
-                if trimmed_line.len() > 0 {
+                if Self::is_message_line(trimmed_line) {
                     current_paragraph
                         .add_line(trimmed_line)
                         .expect("Failed to add line to paragraph")
@@ -331,6 +331,18 @@ pub mod core {
 
             let ref paragraph = self.paragraphs[num];
             return Some(paragraph);
+        }
+
+        fn is_message_line(line: &str) -> bool {
+            if line.len() == 0 {
+                return false;
+            }
+
+            if line.starts_with("#") {
+                return false;
+            }
+
+            return true;
         }
     }
 
@@ -569,6 +581,32 @@ first line of 4th paragraph
             commit_message.paragraphs[3].lines,
             vec![String::from("first line of 4th paragraph")]
         );
+    }
+
+    #[test]
+    fn should_skip_lines_staring_with_hash_character() {
+        // given
+        let input_string = r"#foo
+        bar
+        #baz
+
+        #foo1
+        bar1
+        baz1
+        #
+        foo2
+        ";
+
+        // when
+        let commit_msg = CommitMessage::from(input_string);
+
+        // then
+        assert_eq!(commit_msg.paragraphs[0].lines, vec![String::from("bar")]);
+        assert_eq!(
+            commit_msg.paragraphs[1].lines,
+            vec![String::from("bar1"), String::from("baz1"),]
+        );
+        assert_eq!(commit_msg.paragraphs[2].lines, vec![String::from("foo2")]);
     }
 
     #[test]
