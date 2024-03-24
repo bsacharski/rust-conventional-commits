@@ -25,6 +25,8 @@ cargo test
 ### Installing hooks
 
 ```shell
-cargo build && cp target/debug/prepare-msg .git/hooks/prepare-commit-msg
+cargo build \
+  && cp target/debug/prepare-msg .git/hooks/prepare-commit-msg \
+  && cp target/debug/commit-lint .git/hooks/commit-msg
 ```
 
