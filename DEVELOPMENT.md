@@ -19,7 +19,6 @@ No need to waste resources of another platform on something that I can easily ru
 ```shell
 cargo fmt --check # or run cargo fmt
 cargo test
-# TODO add command to validate commit subject message against conventional commit spec
 ```
 
 ### Installing hooks
@@ -30,3 +29,7 @@ cargo build \
   && cp target/debug/commit-lint .git/hooks/commit-msg
 ```
 
+Once that is done, it's OK to work on the project.
+
+_Note_: remember to regenerate hook binaries if you have modified them in any meaningful way.
+Otherwise you will be running outdated version.
