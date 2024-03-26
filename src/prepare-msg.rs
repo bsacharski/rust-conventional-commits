@@ -9,7 +9,7 @@ fn main() -> () {
     Our binary will receive three arguments: path to the file with initial commit message,
     the type of the commit and commit SHA-1.
     */
-    let args: PrepareMessageArgs = process_args(env::args().collect());
+    let args: PrepareMessageArgs = process_args(&env::args().collect());
 
     if !can_use_template(&args) {
         return;
@@ -36,7 +36,7 @@ mod tests {
         let args = vec![String::from("DontCare"), String::from(".git/some/file")];
 
         // when
-        let actual = process_args(args);
+        let actual = process_args(&args);
 
         // then
         let expected: PrepareMessageArgs = PrepareMessageArgs {
@@ -61,7 +61,7 @@ mod tests {
         ];
 
         // when
-        let actual = process_args(args);
+        let actual = process_args(&args);
 
         // then
         let expected: PrepareMessageArgs = PrepareMessageArgs {
@@ -82,7 +82,7 @@ mod tests {
         let args = vec![];
 
         // when
-        process_args(args);
+        process_args(&args);
     }
 
     #[test]
@@ -92,7 +92,7 @@ mod tests {
         let args = vec![String::from("DontCare")];
 
         // when
-        process_args(args);
+        process_args(&args);
     }
 
     #[test]

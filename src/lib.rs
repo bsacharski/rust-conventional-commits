@@ -17,7 +17,7 @@ pub mod prepare_msg {
         return false;
     }
 
-    pub fn process_args(args: Vec<String>) -> PrepareMessageArgs {
+    pub fn process_args(args: &Vec<String>) -> PrepareMessageArgs {
         if args.len() < 2 {
             panic!("Missing prepare-commit-msg arguments");
         }
@@ -69,7 +69,7 @@ pub mod commit_msg {
         pub filename: String,
     }
 
-    pub fn process_args(args: Vec<String>) -> CommitMsgArgs {
+    pub fn process_args(args: &Vec<String>) -> CommitMsgArgs {
         if args.len() < 2 {
             panic!("Missing commit-msg arguments");
         }

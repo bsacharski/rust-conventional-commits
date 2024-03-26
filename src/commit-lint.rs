@@ -8,7 +8,7 @@ file passed as a first argument. This file contains a commit message that we wan
 to run against.
 */
 fn main() -> () {
-    let args: CommitMsgArgs = process_args(env::args().collect());
+    let args: CommitMsgArgs = process_args(&env::args().collect());
 
     let file_content = fs::read_to_string(String::from(args.filename))
         .unwrap_or_else(|e| panic!("Couldn't open file with commit message: {}", e));
