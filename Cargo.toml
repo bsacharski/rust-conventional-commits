@@ -16,6 +16,10 @@ path = "src/prepare-msg.rs"
 name = "commit-lint"
 path = "src/commit-lint.rs"
 
+[[bin]]
+name = "log"
+path = "src/log.rs"
+
 [dependencies]
 regex = "1.10.3"
 lazy_static = "1.4.0"

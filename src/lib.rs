@@ -420,6 +420,10 @@ pub mod core {
     }
 }
 
+pub mod history {
+    // TODO implement me!
+}
+
 #[cfg(test)]
 mod tests {
     use crate::core::CommitType::{Feat, Fix};
