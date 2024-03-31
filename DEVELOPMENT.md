@@ -6,6 +6,18 @@
 cargo vendor
 ```
 
+## Development tools
+
+### cargo deny
+
+The project uses [cargo deny](https://embarkstudios.github.io/cargo-deny/index.html) to lint its dependencies.
+
+You can manually check whether dependencies are in line with project by running:
+
+```shell
+cargo deny check
+```
+
 ## Before you commit
 
 The section below will be removed at some point.
