@@ -18,6 +18,18 @@ You can manually check whether dependencies are in line with project by running:
 cargo deny check
 ```
 
+### cargo audit
+
+It would be wise to also run [cargo audit](https://github.com/rustsec/rustsec/blob/main/cargo-audit/README.md) to
+analyze dependencies against known CVEs.
+
+```shell
+cargo audit
+```
+
+_Side note:_ it might be worth keeping an eye for [cargo auditable](https://github.com/rust-secure-code/cargo-auditable)
+which aims to embed dependency information into binaries themselves.
+
 ## Before you commit
 
 The section below will be removed at some point.
