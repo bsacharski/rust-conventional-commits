@@ -206,7 +206,7 @@ pub mod core {
             let mut has_breaking_change = false;
 
             for line in paragraph.get_lines() {
-                let potential_element = FooterElement::from(line);
+                let potential_element = FooterElement::from(line.as_str());
                 if potential_element.is_err() {
                     return Err(ParseError {
                         line: String::from(line),
@@ -236,7 +236,7 @@ pub mod core {
     }
 
     impl FooterElement {
-        pub fn from(line: &String) -> Result<Self, ParseError> {
+        pub fn from(line: &str) -> Result<Self, ParseError> {
             let captures = super::core::FOOTER_REGEX.captures(line);
             if captures.is_none() {
                 return Err(ParseError {
