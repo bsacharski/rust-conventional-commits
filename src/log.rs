@@ -38,7 +38,10 @@ fn run_git() -> () {
         .output();
 
     if command.is_err() {
-        panic!("Failed to start git log command: {}", command.err().unwrap())
+        panic!(
+            "Failed to start git log command: {}",
+            command.err().unwrap()
+        )
     }
 
     let stdout_u8 = command.unwrap().stdout;

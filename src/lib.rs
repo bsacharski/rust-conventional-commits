@@ -422,7 +422,7 @@ pub mod core {
 
 pub mod history {
     use crate::core::ConventionalCommit;
-    use chrono::{DateTime,Utc};
+    use chrono::{DateTime, Utc};
 
     // TODO implement me!
     struct HistoryEntry {
