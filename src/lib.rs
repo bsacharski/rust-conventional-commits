@@ -917,4 +917,46 @@ first line of 4th paragraph
             }
         )
     }
+
+    #[test]
+    fn should_create_conventional_commit_with_header_and_footer_variant_3() {
+        // given
+        let commit = CommitMessage {
+            paragraphs: vec![
+                Paragraph {
+                    lines: vec![String::from("fix: add new unit tests 5")],
+                },
+                Paragraph {
+                    lines: vec![
+                        String::from("key: This is a very long value, with spaces and"),
+                        String::from("  newlines in it.")
+                    ],
+                },
+            ],
+        };
+
+        // when
+        let convention_commit = ConventionalCommit::from(commit);
+
+        // then
+        assert_eq!(
+            convention_commit.unwrap(),
+            ConventionalCommit {
+                commit_type: Fix,
+                scopes: None,
+                is_breaking_change: true,
+                description: String::from("add new unit tests 5"),
+                body: None,
+                footer: Some(Footer {
+                    has_breaking_change_marker: true,
+                    elements: vec![
+                        FooterElement {
+                            content: String::from("key: This is a very long value, with spaces and newlines in it."),
+                            has_breaking_change: false,
+                        }
+                    ]
+                }),
+            }
+        )
+    }
 }
