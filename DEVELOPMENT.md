@@ -56,4 +56,4 @@ cargo build \
 Once that is done, it's OK to work on the project.
 
 _Note_: remember to regenerate hook binaries if you have modified them in any meaningful way.
-Otherwise you will be running outdated version.
+Otherwise, you will be running outdated version.

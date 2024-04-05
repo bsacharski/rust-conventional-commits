@@ -448,7 +448,7 @@ mod tests {
 
         // then
         let expected: ConventionalCommit = ConventionalCommit {
-            commit_type: CommitType::Feat,
+            commit_type: Feat,
             scopes: Some(vec![String::from("foo")]),
             description: String::from("bar baz"),
             body: None,
@@ -469,7 +469,7 @@ mod tests {
 
         // then
         let expected: ConventionalCommit = ConventionalCommit {
-            commit_type: CommitType::Fix,
+            commit_type: Fix,
             scopes: Some(vec![String::from("foo")]),
             description: String::from("bar baz"),
             body: None,
@@ -511,7 +511,7 @@ mod tests {
 
         // then
         let expected: ConventionalCommit = ConventionalCommit {
-            commit_type: CommitType::Feat,
+            commit_type: Feat,
             scopes: Some(vec![String::from("foo")]),
             description: String::from("bar baz"),
             body: None,
@@ -532,7 +532,7 @@ mod tests {
 
         // then
         let expected: ConventionalCommit = ConventionalCommit {
-            commit_type: CommitType::Feat,
+            commit_type: Feat,
             scopes: Some(vec![String::from("foo"), String::from("bax")]),
             description: String::from("bar baz"),
             body: None,
