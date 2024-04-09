@@ -1,5 +1,5 @@
 pub mod history {
-    use crate::core::core::ConventionalCommit;
+    use crate::core::conventional_commit::ConventionalCommit;
     use chrono::{DateTime, Utc};
 
     // TODO implement me!

@@ -1,5 +1,5 @@
-use con_comm::commit_msg::{process_args, CommitMsgArgs};
-use con_comm::core::ConventionalCommit;
+use con_comm::core::conventional_commit::ConventionalCommit;
+use con_comm::hooks::commit_msg::{process_args, CommitMsgArgs};
 use std::{env, fs};
 
 /*

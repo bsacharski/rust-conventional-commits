@@ -1,4 +1,6 @@
-use con_comm::prepare_msg::{can_use_template, get_template, process_args, PrepareMessageArgs};
+use con_comm::hooks::prepare_msg::{
+    can_use_template, get_template, process_args, PrepareMessageArgs,
+};
 use std::env;
 use std::fs::File;
 use std::io::Write;
@@ -29,7 +31,7 @@ fn main() -> () {
 
 #[cfg(test)]
 mod tests {
-    use con_comm::prepare_msg::{can_use_template, process_args, PrepareMessageArgs};
+    use con_comm::hooks::prepare_msg::{can_use_template, process_args, PrepareMessageArgs};
     #[test]
     fn should_process_args_with_only_path_to_commit_file() {
         // given

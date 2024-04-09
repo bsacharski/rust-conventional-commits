@@ -1,4 +1,2 @@
-mod core;
-mod prepare_msg;
-mod commit_msg;
-mod history;
+pub mod core;
+pub mod hooks;
