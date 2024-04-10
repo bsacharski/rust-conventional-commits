@@ -21,7 +21,7 @@ name = "log"
 path = "src/log.rs"
 
 [dependencies]
-regex = "1.10.3"
+regex = "1.10.4"
 lazy_static = "1.4.0"
 log = "0.4.21"
 chrono = "0.4.37"
