@@ -675,10 +675,14 @@ mod tests {
                 Paragraph {
                     lines: vec![String::from("fix: add new unit tests 5")],
                 },
+                // Note git trailers/footer will be always in the last paragraph of commit, so it makes
+                // it easier to parse.
                 Paragraph {
                     lines: vec![
-                        String::from("key: This is a very long value, with spaces and"),
+                        String::from("keyA: This is one-line of git trailer."),
+                        String::from("keyB: This is a very long value, with spaces and"),
                         String::from("  newlines in it."),
+                        String::from("keyC: This is yet another one-line of git trailer"),
                     ],
                 },
             ],
@@ -698,12 +702,24 @@ mod tests {
                 body: None,
                 footer: Some(Footer {
                     has_breaking_change_marker: true,
-                    elements: vec![FooterElement {
-                        content: String::from(
-                            "key: This is a very long value, with spaces and newlines in it."
-                        ),
-                        has_breaking_change: false,
-                    }]
+                    elements: vec![
+                        FooterElement {
+                            content: String::from("keyA: This is one-line of git trailer."),
+                            has_breaking_change: false,
+                        },
+                        FooterElement {
+                            content: String::from(
+                                "keyB: This is a very long value, with spaces and newlines in it."
+                            ),
+                            has_breaking_change: false,
+                        },
+                        FooterElement {
+                            content: String::from(
+                                "keyC: This is yet another one-line of git trailer"
+                            ),
+                            has_breaking_change: false,
+                        },
+                    ]
                 }),
             }
         )
