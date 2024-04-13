@@ -679,8 +679,6 @@ mod tests {
                 Paragraph {
                     lines: vec![String::from("fix: add new unit tests 5")],
                 },
-                // Note git trailers/footer will be always in the last paragraph of commit, so it makes
-                // it easier to parse.
                 Paragraph {
                     lines: vec![
                         String::from("keyA: This is one-line of git trailer."),
