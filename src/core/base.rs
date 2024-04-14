@@ -49,4 +49,66 @@ impl Paragraph {
     pub fn get_lines(&self) -> &Vec<String> {
         &self.lines
     }
+
+    pub fn folded(&self) -> Paragraph {
+        let folded_lines: Vec<String> = vec![];
+
+        return Paragraph { lines: folded_lines }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::core::base::Paragraph;
+
+    #[test]
+    fn should_fold_line_starting_with_trailing_space_into_previous_line() {
+        // given
+        let lines = vec![
+            String::from("first line"),
+            String::from("  has continuation"),
+            String::from("  that spans over"),
+            String::from("   multiple lines")
+        ];
+
+        let paragraph = Paragraph { lines };
+
+        // when
+        let folded_paragraph = paragraph.folded();
+
+        // then
+        assert_eq!(folded_paragraph, Paragraph {
+            lines: vec![
+                String::from("first line has continuation that spans over multiple lines")
+            ]
+        })
+    }
+
+    #[test]
+    fn should_fold_lines_starting_with_trailing_space_in_a_paragraph_with_multiple_lines_being_folded() {
+        let lines = vec![
+            String::from("first line"),
+            String::from(" with fold"),
+            String::from("second line without a fold"),
+            String::from("third line"),
+            String::from("  with multiple"),
+            String::from(" folds"),
+            String::from("fourth line")
+        ];
+
+        let paragraph = Paragraph { lines };
+
+        // when
+        let folded_paragraph = paragraph.folded();
+
+        // then
+        assert_eq!(folded_paragraph, Paragraph {
+            lines: vec![
+                String::from("first line with fold"),
+                String::from("second line without a fold"),
+                String::from("third line with multiple folds"),
+                String::from("fourth line")
+            ]
+        })
+    }
 }
