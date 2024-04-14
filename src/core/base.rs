@@ -51,9 +51,33 @@ impl Paragraph {
     }
 
     pub fn folded(&self) -> Paragraph {
-        let folded_lines: Vec<String> = vec![];
+        let mut folded_lines: Vec<String> = vec![];
 
-        return Paragraph { lines: folded_lines }
+        if self.lines.len() > 0 {
+            let mut lines_iterator = self.lines.iter();
+
+            let mut current_line = String::from(lines_iterator.next().unwrap());
+            loop {
+                let next_line = lines_iterator.next();
+
+                if next_line.is_none() {
+                    folded_lines.push(current_line);
+                    break;
+                }
+
+                if next_line.unwrap().starts_with(" ") {
+                    current_line.push_str(" ");
+                    current_line.push_str(next_line.unwrap().trim_start());
+                } else {
+                    folded_lines.push(current_line);
+                    current_line = String::from(next_line.unwrap());
+                }
+            }
+        }
+
+        return Paragraph {
+            lines: folded_lines,
+        };
     }
 }
 
@@ -68,7 +92,7 @@ mod tests {
             String::from("first line"),
             String::from("  has continuation"),
             String::from("  that spans over"),
-            String::from("   multiple lines")
+            String::from("   multiple lines"),
         ];
 
         let paragraph = Paragraph { lines };
@@ -77,15 +101,19 @@ mod tests {
         let folded_paragraph = paragraph.folded();
 
         // then
-        assert_eq!(folded_paragraph, Paragraph {
-            lines: vec![
-                String::from("first line has continuation that spans over multiple lines")
-            ]
-        })
+        assert_eq!(
+            folded_paragraph,
+            Paragraph {
+                lines: vec![String::from(
+                    "first line has continuation that spans over multiple lines"
+                )]
+            }
+        )
     }
 
     #[test]
-    fn should_fold_lines_starting_with_trailing_space_in_a_paragraph_with_multiple_lines_being_folded() {
+    fn should_fold_lines_starting_with_trailing_space_in_a_paragraph_with_multiple_lines_being_folded(
+    ) {
         let lines = vec![
             String::from("first line"),
             String::from(" with fold"),
@@ -93,7 +121,7 @@ mod tests {
             String::from("third line"),
             String::from("  with multiple"),
             String::from(" folds"),
-            String::from("fourth line")
+            String::from("fourth line"),
         ];
 
         let paragraph = Paragraph { lines };
@@ -102,13 +130,16 @@ mod tests {
         let folded_paragraph = paragraph.folded();
 
         // then
-        assert_eq!(folded_paragraph, Paragraph {
-            lines: vec![
-                String::from("first line with fold"),
-                String::from("second line without a fold"),
-                String::from("third line with multiple folds"),
-                String::from("fourth line")
-            ]
-        })
+        assert_eq!(
+            folded_paragraph,
+            Paragraph {
+                lines: vec![
+                    String::from("first line with fold"),
+                    String::from("second line without a fold"),
+                    String::from("third line with multiple folds"),
+                    String::from("fourth line")
+                ]
+            }
+        )
     }
 }

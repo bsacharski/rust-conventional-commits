@@ -173,7 +173,7 @@ impl Footer {
         then it looks like the buffer contains normal body message. If a "key" is found, then
         we grab the contents of the buffer, trim the unnecessary whitespace characters and join
         the contents of the trailer.
-        
+
         The good news is that it's possible to assume that if the "current" line is a footer element
         and the next one starts with whitespace character(s) then it most likely is a footer continuation.
         Furthermore, footers appear only in last paragraph. This should make things easier.
