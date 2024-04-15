@@ -179,7 +179,8 @@ impl Footer {
         Furthermore, footers appear only in last paragraph. This should make things easier.
          */
 
-        for line in paragraph.get_lines() {
+        let folded_paragraph = paragraph.folded();
+        for line in folded_paragraph.get_lines() {
             let potential_element = FooterElement::from(line.as_str());
             if potential_element.is_err() {
                 return Err(ParseError {
@@ -699,11 +700,11 @@ mod tests {
             ConventionalCommit {
                 commit_type: Fix,
                 scopes: None,
-                is_breaking_change: true,
+                is_breaking_change: false,
                 description: String::from("add new unit tests 5"),
                 body: None,
                 footer: Some(Footer {
-                    has_breaking_change_marker: true,
+                    has_breaking_change_marker: false,
                     elements: vec![
                         FooterElement {
                             content: String::from("keyA: This is one-line of git trailer."),
