@@ -727,4 +727,45 @@ mod tests {
             }
         )
     }
+
+    fn should_create_conventional_commit_with_header_and_footer_being_split_across_lines_introducing_breaking_change() {
+        // given
+        let commit = CommitMessage {
+            paragraphs: vec![
+                Paragraph {
+                    lines: vec![String::from("feat: new breaking change")],
+                },
+                Paragraph {
+                    lines: vec![
+                        String::from("BREAKING-CHANGE: this is a "),
+                        String::from(" multiline message"),
+                    ]
+                }
+            ]
+        };
+
+        // when
+        let conventional_commit = ConventionalCommit::from(commit);
+
+        // then
+        assert_eq!(
+            conventional_commit.unwrap(),
+            ConventionalCommit {
+                commit_type: Feat,
+                scopes: None,
+                is_breaking_change: true,
+                description: String::from("new breaking change"),
+                body: None,
+                footer: Some(Footer {
+                    has_breaking_change_marker: true,
+                    elements: vec![
+                        FooterElement {
+                            content: String::from("BREAKING-CHANGE: this is a multiline message"),
+                            has_breaking_change: true
+                        }
+                    ]
+                })
+            }
+        )
+    }
 }
