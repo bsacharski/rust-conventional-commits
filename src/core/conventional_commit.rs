@@ -728,7 +728,9 @@ mod tests {
         )
     }
 
-    fn should_create_conventional_commit_with_header_and_footer_being_split_across_lines_introducing_breaking_change() {
+    #[test]
+    fn should_create_conventional_commit_with_header_and_footer_being_split_across_lines_introducing_breaking_change(
+    ) {
         // given
         let commit = CommitMessage {
             paragraphs: vec![
@@ -737,11 +739,11 @@ mod tests {
                 },
                 Paragraph {
                     lines: vec![
-                        String::from("BREAKING-CHANGE: this is a "),
+                        String::from("BREAKING CHANGE: this is a"),
                         String::from(" multiline message"),
-                    ]
-                }
-            ]
+                    ],
+                },
+            ],
         };
 
         // when
@@ -758,13 +760,56 @@ mod tests {
                 body: None,
                 footer: Some(Footer {
                     has_breaking_change_marker: true,
-                    elements: vec![
-                        FooterElement {
-                            content: String::from("BREAKING-CHANGE: this is a multiline message"),
-                            has_breaking_change: true
-                        }
-                    ]
+                    elements: vec![FooterElement {
+                        content: String::from("BREAKING CHANGE: this is a multiline message"),
+                        has_breaking_change: true
+                    }]
                 })
+            }
+        )
+    }
+
+    #[test]
+    fn should_leave_last_paragraph_that_is_not_a_footer_as_it_is() {
+        // given
+        let commit = CommitMessage {
+            paragraphs: vec![
+                Paragraph {
+                    lines: vec![String::from("feat: some message")],
+                },
+                Paragraph {
+                    lines: vec![
+                        String::from("this is a "),
+                        String::from(" multiline message"),
+                        String::from("  that is not a footer"),
+                        String::from("   and should not be folded"),
+                    ],
+                },
+            ],
+        };
+
+        // when
+        let conventional_commit = ConventionalCommit::from(commit);
+
+        // then
+        assert_eq!(
+            conventional_commit.unwrap(),
+            ConventionalCommit {
+                commit_type: Feat,
+                scopes: None,
+                is_breaking_change: false,
+                description: String::from("some message"),
+                body: Some(Body {
+                    paragraphs: vec![Paragraph {
+                        lines: vec![
+                            String::from("this is a "),
+                            String::from(" multiline message"),
+                            String::from("  that is not a footer"),
+                            String::from("   and should not be folded"),
+                        ]
+                    }]
+                }),
+                footer: None
             }
         )
     }
