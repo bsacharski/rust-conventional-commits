@@ -158,27 +158,6 @@ impl Footer {
         let mut footer_elements: Vec<FooterElement> = vec![];
         let mut has_breaking_change = false;
 
-        /*
-         TODO this mechanism will not work! Git trailers may contain whitespace characters, see:
-        When reading trailers, there can be no whitespace before or inside the <key>, but any
-        number of regular space and tab characters are allowed between the <key> and the separator.
-        There can be whitespaces before, inside or after the <value>.
-        The <value> may be split over multiple lines with each subsequent line starting with
-        at least one whitespace, like the "folding" in RFC 822.
-
-        It looks like we have to go back to the state machine-based approach - maybe we could
-        read message using bottom-up approach, when we read a line and if it starts with a space,
-        then we load it into a buffer, and keep reading until we hopefully reach the "key". If
-        we find an empty newline, or we don't find a line with something that matches "key" pattern,
-        then it looks like the buffer contains normal body message. If a "key" is found, then
-        we grab the contents of the buffer, trim the unnecessary whitespace characters and join
-        the contents of the trailer.
-
-        The good news is that it's possible to assume that if the "current" line is a footer element
-        and the next one starts with whitespace character(s) then it most likely is a footer continuation.
-        Furthermore, footers appear only in last paragraph. This should make things easier.
-         */
-
         let folded_paragraph = paragraph.folded();
         for line in folded_paragraph.get_lines() {
             let potential_element = FooterElement::from(line.as_str());
