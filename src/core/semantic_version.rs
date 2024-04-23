@@ -18,6 +18,10 @@ impl SemanticVersion {
         };
     }
 
+    pub fn from(input: String) -> Option<Self> {
+        todo!("Implement parsing string version into proper semver instance")
+    }
+
     pub fn apply_commit(self, commit: ConventionalCommit) -> SemanticVersion {
         if commit.is_breaking_change {
             return Self::new(self.major + 1, self.minor, self.patch, self.metadata);
@@ -115,5 +119,46 @@ mod tests {
 
         // then
         assert_eq!(new_version, SemanticVersion::new(1, 0, 0, None));
+    }
+
+    #[test]
+    fn should_parse_semantic_version_string_into_semantic_version_instance_with_metadata() {
+        // given
+        let input = String::from("32.12.4+202105272159");
+
+        // when
+        let actual = SemanticVersion::from(input);
+
+        // then
+        assert_eq!(
+            actual.unwrap(),
+            SemanticVersion {
+                major: 32,
+                minor: 12,
+                patch: 4,
+                metadata: Some(String::from("202105272159"))
+            }
+        )
+    }
+
+    #[test]
+    fn should_parse_semantic_version_string_with_v_as_prefix_into_semantic_version_instance_with_metadata(
+    ) {
+        // given
+        let input = String::from("v32.12.4+202105272159");
+
+        // when
+        let actual = SemanticVersion::from(input);
+
+        // then
+        assert_eq!(
+            actual.unwrap(),
+            SemanticVersion {
+                major: 32,
+                minor: 12,
+                patch: 4,
+                metadata: Some(String::from("202105272159"))
+            }
+        )
     }
 }
