@@ -35,6 +35,19 @@ impl SemanticVersion {
     }
 }
 
+impl std::fmt::Display for SemanticVersion {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.metadata {
+            Some(metadata) => write!(
+                f,
+                "{}.{}.{}+{}",
+                self.major, self.minor, self.patch, metadata
+            ),
+            None => write!(f, "{}.{}.{}", self.major, self.minor, self.patch),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::core::conventional_commit::CommitType::{Feat, Fix};
@@ -160,5 +173,29 @@ mod tests {
                 metadata: Some(String::from("202105272159"))
             }
         )
+    }
+
+    #[test]
+    fn should_convert_semver_without_metadata_to_string() {
+        // given
+        let version = SemanticVersion::new(1, 2, 3, None);
+
+        // when
+        let actual = version.to_string();
+
+        // then
+        assert_eq!(String::from("1.2.3"), actual);
+    }
+
+    #[test]
+    fn should_convert_semver_with_metadata_to_string() {
+        // given
+        let version = SemanticVersion::new(1, 2, 3, Some(String::from("20240501")));
+
+        // when
+        let actual = version.to_string();
+
+        // then
+        assert_eq!(String::from("1.2.3+20240501"), actual);
     }
 }
