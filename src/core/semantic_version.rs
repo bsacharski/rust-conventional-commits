@@ -1,4 +1,5 @@
 use crate::core::conventional_commit::{CommitType, ConventionalCommit};
+use std::cmp::Ordering;
 
 #[derive(Debug, PartialEq)]
 struct SemanticVersion {
@@ -45,6 +46,82 @@ impl std::fmt::Display for SemanticVersion {
             ),
             None => write!(f, "{}.{}.{}", self.major, self.minor, self.patch),
         }
+    }
+}
+
+impl std::cmp::PartialEq for SemanticVersion {
+    fn eq(&self, other: &Self) -> bool {
+        self.major == other.major && self.minor == other.minor && self.patch == other.patch
+    }
+}
+
+impl std::cmp::PartialOrd for SemanticVersion {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        todo!()
+    }
+
+    fn lt(&self, other: &Self) -> bool {
+        if self.major != other.major {
+            return self.major < other.major;
+        }
+
+        if self.minor != other.minor {
+            return self.minor < other.minor;
+        }
+
+        if self.patch != other.patch {
+            return self.patch < other.patch;
+        }
+
+        return false;
+    }
+
+    fn le(&self, other: &Self) -> bool {
+        if self.major != other.major {
+            return self.major <= other.major;
+        }
+
+        if self.minor != other.minor {
+            return self.minor <= other.minor;
+        }
+
+        if self.patch != other.patch {
+            return self.patch <= other.patch;
+        }
+
+        return true;
+    }
+
+    fn gt(&self, other: &Self) -> bool {
+        if self.major != other.major {
+            return self.major > other.major;
+        }
+
+        if self.minor != other.minor {
+            return self.minor > other.minor;
+        }
+
+        if self.patch != other.patch {
+            return self.patch > other.patch;
+        }
+
+        return false;
+    }
+
+    fn ge(&self, other: &Self) -> bool {
+        if self.major != other.major {
+            return self.major >= other.major;
+        }
+
+        if self.minor != other.minor {
+            return self.minor >= other.minor;
+        }
+
+        if self.patch != other.patch {
+            return self.patch >= other.patch;
+        }
+
+        return false;
     }
 }
 
@@ -198,4 +275,7 @@ mod tests {
         // then
         assert_eq!(String::from("1.2.3+20240501"), actual);
     }
+
+    #[test]
+    fn should_mark_same_version_with_different_metadata_as_equal() {}
 }
