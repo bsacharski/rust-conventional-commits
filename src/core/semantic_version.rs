@@ -1,7 +1,7 @@
 use crate::core::conventional_commit::{CommitType, ConventionalCommit};
 use std::cmp::Ordering;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 struct SemanticVersion {
     major: u32,
     minor: u32,
@@ -49,79 +49,27 @@ impl std::fmt::Display for SemanticVersion {
     }
 }
 
-impl std::cmp::PartialEq for SemanticVersion {
+impl PartialEq for SemanticVersion {
     fn eq(&self, other: &Self) -> bool {
         self.major == other.major && self.minor == other.minor && self.patch == other.patch
     }
 }
 
-impl std::cmp::PartialOrd for SemanticVersion {
+impl PartialOrd for SemanticVersion {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        todo!()
-    }
-
-    fn lt(&self, other: &Self) -> bool {
-        if self.major != other.major {
-            return self.major < other.major;
+        if self.eq(other) {
+            return Some(Ordering::Equal);
         }
 
-        if self.minor != other.minor {
-            return self.minor < other.minor;
-        }
-
-        if self.patch != other.patch {
-            return self.patch < other.patch;
-        }
-
-        return false;
-    }
-
-    fn le(&self, other: &Self) -> bool {
-        if self.major != other.major {
-            return self.major <= other.major;
-        }
-
-        if self.minor != other.minor {
-            return self.minor <= other.minor;
-        }
-
-        if self.patch != other.patch {
-            return self.patch <= other.patch;
-        }
-
-        return true;
-    }
-
-    fn gt(&self, other: &Self) -> bool {
-        if self.major != other.major {
-            return self.major > other.major;
-        }
-
-        if self.minor != other.minor {
-            return self.minor > other.minor;
-        }
-
-        if self.patch != other.patch {
-            return self.patch > other.patch;
-        }
-
-        return false;
-    }
-
-    fn ge(&self, other: &Self) -> bool {
-        if self.major != other.major {
-            return self.major >= other.major;
-        }
-
-        if self.minor != other.minor {
-            return self.minor >= other.minor;
-        }
-
-        if self.patch != other.patch {
-            return self.patch >= other.patch;
-        }
-
-        return false;
+        return if self.major == other.major {
+            if self.minor == other.minor {
+                self.patch.partial_cmp(&other.patch)
+            } else {
+                self.minor.partial_cmp(&other.minor)
+            }
+        } else {
+            self.major.partial_cmp(&other.major)
+        };
     }
 }
 
@@ -277,5 +225,34 @@ mod tests {
     }
 
     #[test]
-    fn should_mark_same_version_with_different_metadata_as_equal() {}
+    fn should_mark_same_version_with_different_metadata_as_equal() {
+        let first = SemanticVersion::new(1, 2, 3, Some(String::from("20240501")));
+        let second = SemanticVersion::new(1, 2, 3, None);
+
+        assert_eq!(first, second);
+    }
+
+    #[test]
+    fn should_mark_two_version_with_different_major_as_not_equal() {
+        let first = SemanticVersion::new(1, 2, 3, None);
+        let second = SemanticVersion::new(2, 2, 3, None);
+
+        assert_ne!(first, second);
+    }
+
+    #[test]
+    fn should_mark_two_version_with_different_minor_as_not_equal() {
+        let first = SemanticVersion::new(1, 2, 3, None);
+        let second = SemanticVersion::new(1, 3, 3, None);
+
+        assert_ne!(first, second);
+    }
+    #[test]
+    fn should_mark_two_version_with_different_patch_as_not_equal() {
+        let first = SemanticVersion::new(1, 2, 3, None);
+        let second = SemanticVersion::new(1, 2, 4, None);
+
+        assert_ne!(first, second);
+    }
+
 }
