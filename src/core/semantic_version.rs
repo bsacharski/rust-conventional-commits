@@ -255,4 +255,51 @@ mod tests {
         assert_ne!(first, second);
     }
 
+    #[test]
+    fn should_mark_first_version_as_lesser_than_second_patch_change() {
+        let first = SemanticVersion::new(1, 2, 3, None);
+        let second = SemanticVersion::new(1, 2, 4, None);
+
+        assert!(first < second)
+    }
+
+    #[test]
+    fn should_mark_first_version_as_lesser_than_second_minor_change() {
+        let first = SemanticVersion::new(1, 2, 3, None);
+        let second = SemanticVersion::new(1, 3, 3, None);
+
+        assert!(first < second)
+    }
+
+    #[test]
+    fn should_mark_first_version_as_lesser_than_second_major_change() {
+        let first = SemanticVersion::new(1, 2, 3, None);
+        let second = SemanticVersion::new(2, 2, 3, None);
+
+        assert!(first < second)
+    }
+
+    #[test]
+    fn should_mark_first_version_as_greater_than_second_patch_change() {
+        let first = SemanticVersion::new(1, 2, 5, None);
+        let second = SemanticVersion::new(1, 2, 4, None);
+
+        assert!(first > second)
+    }
+
+    #[test]
+    fn should_mark_first_version_as_greater_than_second_minor_change() {
+        let first = SemanticVersion::new(1, 3, 4, None);
+        let second = SemanticVersion::new(1, 2, 4, None);
+
+        assert!(first > second)
+    }
+
+    #[test]
+    fn should_mark_first_version_as_greater_than_second_major_change() {
+        let first = SemanticVersion::new(2, 2, 4, None);
+        let second = SemanticVersion::new(1, 2, 4, None);
+
+        assert!(first > second)
+    }
 }
