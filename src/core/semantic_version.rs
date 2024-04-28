@@ -6,15 +6,48 @@ struct SemanticVersion {
     major: u32,
     minor: u32,
     patch: u32,
+    pre_release: Option<PreRelease>,
     metadata: Option<String>,
 }
 
+#[derive(Debug)]
+struct PreRelease {
+    pre_release_type_chain: Vec<PreReleaseType>,
+    version: Option<i32>,
+}
+
+#[derive(Debug)]
+enum PreReleaseType {
+    Alpha,
+    Beta,
+    RC,
+}
+
+impl std::fmt::Display for PreReleaseType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let str = match &self {
+            PreReleaseType::Alpha => "alpha",
+            PreReleaseType::Beta => "beta",
+            PreReleaseType::RC => "rc",
+        };
+
+        write!(f, "{}", str)
+    }
+}
+
 impl SemanticVersion {
-    pub fn new(major: u32, minor: u32, patch: u32, metadata: Option<String>) -> Self {
+    pub fn new(
+        major: u32,
+        minor: u32,
+        patch: u32,
+        pre_release: Option<PreRelease>,
+        metadata: Option<String>,
+    ) -> Self {
         return Self {
             major,
             minor,
             patch,
+            pre_release,
             metadata,
         };
     }
@@ -25,13 +58,37 @@ impl SemanticVersion {
 
     pub fn apply_commit(self, commit: ConventionalCommit) -> SemanticVersion {
         if commit.is_breaking_change {
-            return Self::new(self.major + 1, self.minor, self.patch, self.metadata);
+            return Self::new(
+                self.major + 1,
+                self.minor,
+                self.patch,
+                self.pre_release,
+                self.metadata,
+            );
         }
 
         match commit.commit_type {
-            CommitType::Feat => Self::new(self.major, self.minor + 1, self.patch, self.metadata),
-            CommitType::Fix => Self::new(self.major, self.minor, self.patch + 1, self.metadata),
-            CommitType::Custom(_) => Self::new(self.major, self.minor, self.patch, self.metadata),
+            CommitType::Feat => Self::new(
+                self.major,
+                self.minor + 1,
+                self.patch,
+                self.pre_release,
+                self.metadata,
+            ),
+            CommitType::Fix => Self::new(
+                self.major,
+                self.minor,
+                self.patch + 1,
+                self.pre_release,
+                self.metadata,
+            ),
+            CommitType::Custom(_) => Self::new(
+                self.major,
+                self.minor,
+                self.patch,
+                self.pre_release,
+                self.metadata,
+            ),
         }
     }
 }
@@ -82,7 +139,7 @@ mod tests {
     #[test]
     fn should_increase_major_version_when_introducing_breaking_change() {
         // given
-        let version = SemanticVersion::new(1, 0, 0, None);
+        let version = SemanticVersion::new(1, 0, 0, None, None);
         let commit = ConventionalCommit {
             commit_type: Fix,
             is_breaking_change: true,
@@ -96,13 +153,13 @@ mod tests {
         let new_version = version.apply_commit(commit);
 
         // then
-        assert_eq!(new_version, SemanticVersion::new(2, 0, 0, None));
+        assert_eq!(new_version, SemanticVersion::new(2, 0, 0, None, None));
     }
 
     #[test]
     fn should_increase_minor_version_when_introducing_new_feature() {
         // given
-        let version = SemanticVersion::new(1, 0, 0, None);
+        let version = SemanticVersion::new(1, 0, 0, None, None);
         let commit = ConventionalCommit {
             commit_type: Feat,
             is_breaking_change: false,
@@ -116,13 +173,13 @@ mod tests {
         let new_version = version.apply_commit(commit);
 
         // then
-        assert_eq!(new_version, SemanticVersion::new(1, 1, 0, None));
+        assert_eq!(new_version, SemanticVersion::new(1, 1, 0, None, None));
     }
 
     #[test]
     fn should_increase_minor_version_when_introducing_a_fix() {
         // given
-        let version = SemanticVersion::new(1, 0, 0, None);
+        let version = SemanticVersion::new(1, 0, 0, None, None);
         let commit = ConventionalCommit {
             commit_type: Fix,
             is_breaking_change: false,
@@ -136,13 +193,13 @@ mod tests {
         let new_version = version.apply_commit(commit);
 
         // then
-        assert_eq!(new_version, SemanticVersion::new(1, 0, 1, None));
+        assert_eq!(new_version, SemanticVersion::new(1, 0, 1, None, None));
     }
 
     #[test]
     fn should_keep_version_as_it_was_when_applying_custom_type_of_commit() {
         // given
-        let version = SemanticVersion::new(1, 0, 0, None);
+        let version = SemanticVersion::new(1, 0, 0, None, None);
         let commit = ConventionalCommit {
             commit_type: CommitType::Custom(String::from("docs")),
             is_breaking_change: false,
@@ -156,7 +213,7 @@ mod tests {
         let new_version = version.apply_commit(commit);
 
         // then
-        assert_eq!(new_version, SemanticVersion::new(1, 0, 0, None));
+        assert_eq!(new_version, SemanticVersion::new(1, 0, 0, None, None));
     }
 
     #[test]
@@ -174,6 +231,7 @@ mod tests {
                 major: 32,
                 minor: 12,
                 patch: 4,
+                pre_release: None,
                 metadata: Some(String::from("202105272159"))
             }
         )
@@ -195,6 +253,7 @@ mod tests {
                 major: 32,
                 minor: 12,
                 patch: 4,
+                pre_release: None,
                 metadata: Some(String::from("202105272159"))
             }
         )
@@ -203,7 +262,7 @@ mod tests {
     #[test]
     fn should_convert_semver_without_metadata_to_string() {
         // given
-        let version = SemanticVersion::new(1, 2, 3, None);
+        let version = SemanticVersion::new(1, 2, 3, None, None);
 
         // when
         let actual = version.to_string();
@@ -215,7 +274,7 @@ mod tests {
     #[test]
     fn should_convert_semver_with_metadata_to_string() {
         // given
-        let version = SemanticVersion::new(1, 2, 3, Some(String::from("20240501")));
+        let version = SemanticVersion::new(1, 2, 3, None, Some(String::from("20240501")));
 
         // when
         let actual = version.to_string();
@@ -226,79 +285,79 @@ mod tests {
 
     #[test]
     fn should_mark_same_version_with_different_metadata_as_equal() {
-        let first = SemanticVersion::new(1, 2, 3, Some(String::from("20240501")));
-        let second = SemanticVersion::new(1, 2, 3, None);
+        let first = SemanticVersion::new(1, 2, 3, None, Some(String::from("20240501")));
+        let second = SemanticVersion::new(1, 2, 3, None, None);
 
         assert_eq!(first, second);
     }
 
     #[test]
     fn should_mark_two_version_with_different_major_as_not_equal() {
-        let first = SemanticVersion::new(1, 2, 3, None);
-        let second = SemanticVersion::new(2, 2, 3, None);
+        let first = SemanticVersion::new(1, 2, 3, None, None);
+        let second = SemanticVersion::new(2, 2, 3, None, None);
 
         assert_ne!(first, second);
     }
 
     #[test]
     fn should_mark_two_version_with_different_minor_as_not_equal() {
-        let first = SemanticVersion::new(1, 2, 3, None);
-        let second = SemanticVersion::new(1, 3, 3, None);
+        let first = SemanticVersion::new(1, 2, 3, None, None);
+        let second = SemanticVersion::new(1, 3, 3, None, None);
 
         assert_ne!(first, second);
     }
     #[test]
     fn should_mark_two_version_with_different_patch_as_not_equal() {
-        let first = SemanticVersion::new(1, 2, 3, None);
-        let second = SemanticVersion::new(1, 2, 4, None);
+        let first = SemanticVersion::new(1, 2, 3, None, None);
+        let second = SemanticVersion::new(1, 2, 4, None, None);
 
         assert_ne!(first, second);
     }
 
     #[test]
     fn should_mark_first_version_as_lesser_than_second_patch_change() {
-        let first = SemanticVersion::new(1, 2, 3, None);
-        let second = SemanticVersion::new(1, 2, 4, None);
+        let first = SemanticVersion::new(1, 2, 3, None, None);
+        let second = SemanticVersion::new(1, 2, 4, None, None);
 
         assert!(first < second)
     }
 
     #[test]
     fn should_mark_first_version_as_lesser_than_second_minor_change() {
-        let first = SemanticVersion::new(1, 2, 3, None);
-        let second = SemanticVersion::new(1, 3, 3, None);
+        let first = SemanticVersion::new(1, 2, 3, None, None);
+        let second = SemanticVersion::new(1, 3, 3, None, None);
 
         assert!(first < second)
     }
 
     #[test]
     fn should_mark_first_version_as_lesser_than_second_major_change() {
-        let first = SemanticVersion::new(1, 2, 3, None);
-        let second = SemanticVersion::new(2, 2, 3, None);
+        let first = SemanticVersion::new(1, 2, 3, None, None);
+        let second = SemanticVersion::new(2, 2, 3, None, None);
 
         assert!(first < second)
     }
 
     #[test]
     fn should_mark_first_version_as_greater_than_second_patch_change() {
-        let first = SemanticVersion::new(1, 2, 5, None);
-        let second = SemanticVersion::new(1, 2, 4, None);
+        let first = SemanticVersion::new(1, 2, 5, None, None);
+        let second = SemanticVersion::new(1, 2, 4, None, None);
 
         assert!(first > second)
     }
 
     #[test]
     fn should_mark_first_version_as_greater_than_second_minor_change() {
-        let first = SemanticVersion::new(1, 3, 4, None);
-        let second = SemanticVersion::new(1, 2, 4, None);
+        let first = SemanticVersion::new(1, 3, 4, None, None);
+        let second = SemanticVersion::new(1, 2, 4, None, None);
 
         assert!(first > second)
     }
 
     #[test]
     fn should_mark_first_version_as_greater_than_second_major_change() {
-        let first = SemanticVersion::new(2, 2, 4, None);
-        let second = SemanticVersion::new(1, 2, 4, None);
+        let first = SemanticVersion::new(2, 2, 4, None, None);
+        let second = SemanticVersion::new(1, 2, 4, None, None);
 
         assert!(first > second)
     }
