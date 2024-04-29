@@ -1,5 +1,6 @@
 use crate::core::conventional_commit::{CommitType, ConventionalCommit};
 use std::cmp::Ordering;
+use std::fmt::{Formatter, write};
 
 #[derive(Debug)]
 struct SemanticVersion {
@@ -14,6 +15,22 @@ struct SemanticVersion {
 struct PreRelease {
     pre_release_type_chain: Vec<PreReleaseType>,
     version: Option<i32>,
+}
+
+impl std::fmt::Display for PreRelease {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let type_chain_str = self.pre_release_type_chain
+            .iter()
+            .map(|x| x.to_string())
+            .collect::<Vec<_>>()
+            .join(".");
+
+        if let Some(version) = self.version {
+            write!(f, "{}.{}", type_chain_str, version)
+        } else {
+            write!(f, "{}", type_chain_str)
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -134,7 +151,8 @@ impl PartialOrd for SemanticVersion {
 mod tests {
     use crate::core::conventional_commit::CommitType::{Feat, Fix};
     use crate::core::conventional_commit::{CommitType, ConventionalCommit};
-    use crate::core::semantic_version::SemanticVersion;
+    use crate::core::semantic_version::{PreRelease, SemanticVersion};
+    use crate::core::semantic_version::PreReleaseType::{Alpha, Beta, RC};
 
     #[test]
     fn should_increase_major_version_when_introducing_breaking_change() {
@@ -360,5 +378,19 @@ mod tests {
         let second = SemanticVersion::new(1, 2, 4, None, None);
 
         assert!(first > second)
+    }
+
+    #[test]
+    fn should_convert_prerelease_with_alpha_beta_and_version_into_string() {
+        let input = PreRelease { pre_release_type_chain: vec![Alpha, Beta], version: Some(1) };
+
+        assert_eq!(input.to_string(), "alpha.beta.1")
+    }
+
+    #[test]
+    fn should_convert_prerelease_with_alpha_beta_without_versioninto_string() {
+        let input = PreRelease { pre_release_type_chain: vec![Alpha, Beta, RC], version: None };
+
+        assert_eq!(input.to_string(), "alpha.beta.rc")
     }
 }
