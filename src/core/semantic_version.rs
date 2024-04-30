@@ -1,6 +1,6 @@
 use crate::core::conventional_commit::{CommitType, ConventionalCommit};
 use std::cmp::Ordering;
-use std::fmt::{Formatter, write};
+use std::fmt::{write, Formatter};
 
 #[derive(Debug)]
 struct SemanticVersion {
@@ -12,6 +12,19 @@ struct SemanticVersion {
 }
 
 #[derive(Debug)]
+enum PreReleaseType {
+    Alpha,
+    Beta,
+    RC,
+}
+
+impl PartialEq for PreReleaseType {
+    fn eq(&self, other: &Self) -> bool {
+        self == other
+    }
+}
+
+#[derive(Debug)]
 struct PreRelease {
     pre_release_type_chain: Vec<PreReleaseType>,
     version: Option<i32>,
@@ -19,7 +32,8 @@ struct PreRelease {
 
 impl std::fmt::Display for PreRelease {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let type_chain_str = self.pre_release_type_chain
+        let type_chain_str = self
+            .pre_release_type_chain
             .iter()
             .map(|x| x.to_string())
             .collect::<Vec<_>>()
@@ -33,11 +47,28 @@ impl std::fmt::Display for PreRelease {
     }
 }
 
-#[derive(Debug)]
-enum PreReleaseType {
-    Alpha,
-    Beta,
-    RC,
+impl PartialEq for PreRelease {
+    fn eq(&self, other: &Self) -> bool {
+        self.version == other.version && self.pre_release_type_chain == other.pre_release_type_chain
+    }
+}
+
+fn get_release_type_priority(pre_release: &PreReleaseType) -> u8 {
+    match pre_release {
+        PreReleaseType::Alpha => 1,
+        PreReleaseType::Beta => 2,
+        PreReleaseType::RC => 4,
+    }
+}
+
+impl PartialOrd for PreReleaseType {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        if self.eq(other) {
+            return Some(Ordering::Equal);
+        }
+
+        return get_release_type_priority(&self).partial_cmp(&get_release_type_priority(&other))
+    }
 }
 
 impl std::fmt::Display for PreReleaseType {
@@ -125,7 +156,7 @@ impl std::fmt::Display for SemanticVersion {
 
 impl PartialEq for SemanticVersion {
     fn eq(&self, other: &Self) -> bool {
-        self.major == other.major && self.minor == other.minor && self.patch == other.patch
+        self.major == other.major && self.minor == other.minor && self.patch == other.patch && self.pre_release == other.pre_release
     }
 }
 
@@ -151,8 +182,8 @@ impl PartialOrd for SemanticVersion {
 mod tests {
     use crate::core::conventional_commit::CommitType::{Feat, Fix};
     use crate::core::conventional_commit::{CommitType, ConventionalCommit};
-    use crate::core::semantic_version::{PreRelease, SemanticVersion};
     use crate::core::semantic_version::PreReleaseType::{Alpha, Beta, RC};
+    use crate::core::semantic_version::{PreRelease, SemanticVersion};
 
     #[test]
     fn should_increase_major_version_when_introducing_breaking_change() {
@@ -382,14 +413,20 @@ mod tests {
 
     #[test]
     fn should_convert_prerelease_with_alpha_beta_and_version_into_string() {
-        let input = PreRelease { pre_release_type_chain: vec![Alpha, Beta], version: Some(1) };
+        let input = PreRelease {
+            pre_release_type_chain: vec![Alpha, Beta],
+            version: Some(1),
+        };
 
         assert_eq!(input.to_string(), "alpha.beta.1")
     }
 
     #[test]
     fn should_convert_prerelease_with_alpha_beta_without_versioninto_string() {
-        let input = PreRelease { pre_release_type_chain: vec![Alpha, Beta, RC], version: None };
+        let input = PreRelease {
+            pre_release_type_chain: vec![Alpha, Beta, RC],
+            version: None,
+        };
 
         assert_eq!(input.to_string(), "alpha.beta.rc")
     }
