@@ -67,7 +67,7 @@ impl PartialOrd for PreReleaseType {
             return Some(Ordering::Equal);
         }
 
-        return get_release_type_priority(&self).partial_cmp(&get_release_type_priority(&other))
+        return get_release_type_priority(&self).partial_cmp(&get_release_type_priority(&other));
     }
 }
 
@@ -156,7 +156,10 @@ impl std::fmt::Display for SemanticVersion {
 
 impl PartialEq for SemanticVersion {
     fn eq(&self, other: &Self) -> bool {
-        self.major == other.major && self.minor == other.minor && self.patch == other.patch && self.pre_release == other.pre_release
+        self.major == other.major
+            && self.minor == other.minor
+            && self.patch == other.patch
+            && self.pre_release == other.pre_release
     }
 }
 
