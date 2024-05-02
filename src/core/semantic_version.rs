@@ -425,12 +425,27 @@ mod tests {
     }
 
     #[test]
-    fn should_convert_prerelease_with_alpha_beta_without_versioninto_string() {
+    fn should_convert_prerelease_with_alpha_beta_without_version_into_string() {
         let input = PreRelease {
             pre_release_type_chain: vec![Alpha, Beta, RC],
             version: None,
         };
 
         assert_eq!(input.to_string(), "alpha.beta.rc")
+    }
+
+    #[test]
+    fn should_consider_alpha_as_lesser_than_beta() {
+        assert!(Alpha < Beta)
+    }
+
+    #[test]
+    fn should_consider_beta_as_lesser_than_rc() {
+        assert!(Beta < RC)
+    }
+
+    #[test]
+    fn should_consider_rc_as_greater_than_alpha() {
+        assert!(RC > Alpha)
     }
 }
