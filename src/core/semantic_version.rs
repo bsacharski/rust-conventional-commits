@@ -1,6 +1,7 @@
 use crate::core::conventional_commit::{CommitType, ConventionalCommit};
 use std::cmp::Ordering;
 use std::fmt::{write, Formatter};
+use std::mem::discriminant;
 
 #[derive(Debug)]
 struct SemanticVersion {
@@ -31,7 +32,7 @@ impl PreReleaseType {
 
 impl PartialEq for PreReleaseType {
     fn eq(&self, other: &Self) -> bool {
-        self == other
+        discriminant(self) == discriminant(other)
     }
 }
 
