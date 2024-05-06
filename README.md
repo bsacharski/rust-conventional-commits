@@ -7,6 +7,10 @@ The aim of this project is:
 - learn rust
 - have some fun at the same time ;)
 
+## Usage
+
+It's a part of the todo ;)
+
 ## TODOs
 
 1. commit message linter -> a tool to validate commit message against [conventional commits][1] spec.
