@@ -15,6 +15,7 @@ The project uses [cargo deny](https://embarkstudios.github.io/cargo-deny/index.h
 You can manually check whether dependencies are in line with project by running:
 
 ```shell
+cargo install --locked cargo-deny
 cargo deny check
 ```
 
@@ -24,6 +25,7 @@ It would be wise to also run [cargo audit](https://github.com/rustsec/rustsec/bl
 analyze dependencies against known CVEs.
 
 ```shell
+cargo install cargo-audit --locked
 cargo audit
 ```
 
