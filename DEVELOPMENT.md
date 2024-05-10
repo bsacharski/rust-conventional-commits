@@ -1,5 +1,10 @@
 # Development
 
+## Requirements
+
+- rust
+- git
+
 ## Setting up dev env.
 
 ```shell
