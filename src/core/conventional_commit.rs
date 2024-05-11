@@ -74,7 +74,7 @@ impl ConventionalCommit {
         }
 
         if paragraphs.len() > 0 {
-            body = Some(Body::from(Vec::from(paragraphs))); // he he, Smash Mouth joke
+            body = Some(Body::from(Vec::from(paragraphs)));
         }
 
         return Ok(ConventionalCommit {
