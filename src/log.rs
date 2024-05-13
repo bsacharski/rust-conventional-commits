@@ -16,11 +16,6 @@ fn main() -> () {
 
     LANG="en_US.UTF-8" git log --format=%ct%n%B should do the trick for now
 
-    LANG sets the env variable for git to use
-    %ct adds committer date in unix timestamp
-    %n adds newline
-    %B adds raw, unprocessed git commit message
-
     TIL: git provides built-in support for parsing trailers with git interpret-trailers.
     It might be worth looking into that.
      */
@@ -33,6 +28,12 @@ fn main() -> () {
 fn run_git() -> () {
     // TODO need to fina a good way to provide reliable path to git binary
     let command = Command::new("/usr/bin/git")
+        /*
+        LANG sets the env variable for git to use
+        %ct adds committer date in unix timestamp
+        %n adds newline
+        %B adds raw, unprocessed git commit message
+         */
         .args(["log", "--format=%ct%n%B"])
         .env("LANG", "en_US.UTF-8")
         .output();
