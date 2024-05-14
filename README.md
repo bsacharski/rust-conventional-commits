@@ -9,7 +9,7 @@ The aim of this project is:
 
 ## Usage
 
-It's a part of the todo ;)
+It's a part of the todo.
 
 ## TODOs
 
