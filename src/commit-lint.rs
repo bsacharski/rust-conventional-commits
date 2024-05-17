@@ -14,6 +14,6 @@ fn main() -> () {
         .unwrap_or_else(|e| panic!("Couldn't open file with commit message: {}", e));
 
     if let Err(e) = ConventionalCommit::from_str(file_content.as_str()) {
-        panic!("Commit message does not follow proper format: {}", e);
+        panic!("Commit message does not match proper format: {}", e);
     }
 }
