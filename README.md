@@ -9,7 +9,10 @@ The aim of this project is:
 
 ## Usage
 
-TODO write me
+TODO:
+
+- hook installation
+- generator usage
 
 ## TODOs
 
