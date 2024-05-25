@@ -11,8 +11,8 @@ The aim of this project is:
 
 TODO:
 
-- hook installation
-- generator usage
+- hook installation,
+- generator usage.
 
 ## TODOs
 
