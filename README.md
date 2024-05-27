@@ -14,7 +14,7 @@ TODO:
 - hook installation,
 - generator usage.
 
-## TODOs
+## TODO
 
 1. Commit message linter -> a tool to validate commit message against [conventional commits][0] spec.
 2. Changelog generator -> a tool that will go through commit history and generate a changelog based on commit messages.
