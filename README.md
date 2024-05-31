@@ -7,6 +7,10 @@ The aim of this project is:
 - learn rust,
 - have some fun at the same time.
 
+## What's working so far
+
+1. Commit message linter - a tool to validate commit message against [conventional commits][0] spec.
+
 ## Usage
 
 TODO
@@ -16,8 +20,7 @@ TODO
 
 ## TODO
 
-1. Commit message linter - a tool to validate commit message against [conventional commits][0] spec.
-2. Changelog generator - a tool that will go through commit history and generate a changelog based on commit messages.
-3. Write a documentation.
+1. Changelog generator - a tool that will go through commit history and generate a changelog based on commit messages.
+2. Write a documentation.
 
 [0]: https://www.conventionalcommits.org/en/v1.0.0/
