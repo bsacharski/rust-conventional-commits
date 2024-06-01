@@ -13,7 +13,7 @@ The aim of this project is:
 
 ## Usage
 
-TODO
+TODOs
 
 - hook installation,
 - generator usage.
