@@ -13,10 +13,17 @@ The aim of this project is:
 
 ## Usage
 
-TODO
+### Hook installation
 
-- hook installation,
-- generator usage.
+```shell
+cargo build --release \
+&& cp target/release/prepare-msg .git/hooks/prepare-commit-msg \
+&& cp target/release/commit-lint .git/hooks/commit-msg
+```
+
+### Generator usage
+
+TODO need to implement it first ;)
 
 ## TODO
 
