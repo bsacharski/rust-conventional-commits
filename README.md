@@ -23,7 +23,7 @@ cargo build --release \
 
 ### Generator usage
 
-TODO need to implement it first ;)
+TODO
 
 ## TODO
 
