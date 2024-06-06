@@ -4,8 +4,7 @@
 
 The aim of this project is:
 - to provide a set of tools related to [conventional commits (version 1.0.0)][0],
-- learn rust,
-- have some fun at the same time.
+- learn rust.
 
 ## What's working so far
 
