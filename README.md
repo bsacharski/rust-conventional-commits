@@ -22,8 +22,6 @@ cargo build --release \
 
 ### Generator usage
 
-TODO
-
 ## TODO
 
 1. Changelog generator - a tool that will go through commit history and generate a changelog based on commit messages.
