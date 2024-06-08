@@ -8,7 +8,7 @@ The aim of this project is:
 
 ## What's working so far
 
-1. Commit message linter - a tool to validate commit message against [conventional commits][0] spec.
+- Commit message linter - a tool to validate commit message against [conventional commits][0] spec.
 
 ## Usage
 
